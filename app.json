@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "MOTEbot",
+    "slug": "vacuum",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.vacuumrobot.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "blockedPermissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.BLUETOOTH"
+      ]
+    },
+    "plugins": [
+      "expo-dev-client",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true,
+            "extraProguardRules": "# react-native-webrtc: its Java classes are called from native code, so R8 must keep them;\n# the AV1 decoder it refers to is not in the library.\n-keep class org.webrtc.** { *; }\n-dontwarn org.webrtc.Dav1dDecoder$Natives\n"
+          }
+        }
+      ],
+      "@config-plugins/react-native-webrtc",
+      "./plugins/withoutJitpack"
+    ]
+  }
+}
