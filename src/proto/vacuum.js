@@ -66,6 +66,9 @@ $root.vacuum = (function() {
          * @property {number} COMMAND_CHANGE_MODE=16 COMMAND_CHANGE_MODE value
          * @property {number} COMMAND_SAVE_MAP=17 COMMAND_SAVE_MAP value
          * @property {number} COMMAND_SET_NO_GO_ZONES=18 COMMAND_SET_NO_GO_ZONES value
+         * @property {number} COMMAND_SET_ROBOT_SETTINGS=19 COMMAND_SET_ROBOT_SETTINGS value
+         * @property {number} COMMAND_FIND_ROOMS=20 COMMAND_FIND_ROOMS value
+         * @property {number} COMMAND_SET_ROOMS=21 COMMAND_SET_ROOMS value
          * @property {number} COMMAND_GO_TO=32 COMMAND_GO_TO value
          * @property {number} COMMAND_CANCEL_GOAL=33 COMMAND_CANCEL_GOAL value
          * @property {number} COMMAND_DRIVE=34 COMMAND_DRIVE value
@@ -78,6 +81,8 @@ $root.vacuum = (function() {
          * @property {number} COMMAND_DELETE_CLEANING_PLAN=69 COMMAND_DELETE_CLEANING_PLAN value
          * @property {number} COMMAND_LIST_CLEANING_HISTORY=70 COMMAND_LIST_CLEANING_HISTORY value
          * @property {number} COMMAND_GET_CLEANING_RECORD=71 COMMAND_GET_CLEANING_RECORD value
+         * @property {number} COMMAND_ASK_ASSISTANT=80 COMMAND_ASK_ASSISTANT value
+         * @property {number} COMMAND_NAME_ROOMS=81 COMMAND_NAME_ROOMS value
          */
         v1.CommandType = (function() {
             var valuesById = $Object.create(null), values = $Object.create(valuesById);
@@ -86,6 +91,9 @@ $root.vacuum = (function() {
             values[valuesById[16] = "COMMAND_CHANGE_MODE"] = 16;
             values[valuesById[17] = "COMMAND_SAVE_MAP"] = 17;
             values[valuesById[18] = "COMMAND_SET_NO_GO_ZONES"] = 18;
+            values[valuesById[19] = "COMMAND_SET_ROBOT_SETTINGS"] = 19;
+            values[valuesById[20] = "COMMAND_FIND_ROOMS"] = 20;
+            values[valuesById[21] = "COMMAND_SET_ROOMS"] = 21;
             values[valuesById[32] = "COMMAND_GO_TO"] = 32;
             values[valuesById[33] = "COMMAND_CANCEL_GOAL"] = 33;
             values[valuesById[34] = "COMMAND_DRIVE"] = 34;
@@ -98,6 +106,8 @@ $root.vacuum = (function() {
             values[valuesById[69] = "COMMAND_DELETE_CLEANING_PLAN"] = 69;
             values[valuesById[70] = "COMMAND_LIST_CLEANING_HISTORY"] = 70;
             values[valuesById[71] = "COMMAND_GET_CLEANING_RECORD"] = 71;
+            values[valuesById[80] = "COMMAND_ASK_ASSISTANT"] = 80;
+            values[valuesById[81] = "COMMAND_NAME_ROOMS"] = 81;
             return values;
         })();
 
@@ -110,6 +120,8 @@ $root.vacuum = (function() {
          * @property {number} DATA_HEARTBEAT=2 DATA_HEARTBEAT value
          * @property {number} DATA_ROBOT_STATE=16 DATA_ROBOT_STATE value
          * @property {number} DATA_SAFETY_STATUS=17 DATA_SAFETY_STATUS value
+         * @property {number} DATA_ROBOT_SETTINGS=18 DATA_ROBOT_SETTINGS value
+         * @property {number} DATA_ROOMS=19 DATA_ROOMS value
          * @property {number} DATA_MAP=32 DATA_MAP value
          * @property {number} DATA_ROBOT_POSE=33 DATA_ROBOT_POSE value
          * @property {number} DATA_ROUTE=35 DATA_ROUTE value
@@ -120,6 +132,7 @@ $root.vacuum = (function() {
          * @property {number} DATA_CLEANING_STATUS=64 DATA_CLEANING_STATUS value
          * @property {number} DATA_CLEANING_PLAN=65 DATA_CLEANING_PLAN value
          * @property {number} DATA_CLEANED_AREA=66 DATA_CLEANED_AREA value
+         * @property {number} DATA_ASSISTANT_STATUS=80 DATA_ASSISTANT_STATUS value
          * @property {number} DATA_REPLY=128 DATA_REPLY value
          */
         v1.DataType = (function() {
@@ -129,6 +142,8 @@ $root.vacuum = (function() {
             values[valuesById[2] = "DATA_HEARTBEAT"] = 2;
             values[valuesById[16] = "DATA_ROBOT_STATE"] = 16;
             values[valuesById[17] = "DATA_SAFETY_STATUS"] = 17;
+            values[valuesById[18] = "DATA_ROBOT_SETTINGS"] = 18;
+            values[valuesById[19] = "DATA_ROOMS"] = 19;
             values[valuesById[32] = "DATA_MAP"] = 32;
             values[valuesById[33] = "DATA_ROBOT_POSE"] = 33;
             values[valuesById[35] = "DATA_ROUTE"] = 35;
@@ -139,6 +154,7 @@ $root.vacuum = (function() {
             values[valuesById[64] = "DATA_CLEANING_STATUS"] = 64;
             values[valuesById[65] = "DATA_CLEANING_PLAN"] = 65;
             values[valuesById[66] = "DATA_CLEANED_AREA"] = 66;
+            values[valuesById[80] = "DATA_ASSISTANT_STATUS"] = 80;
             values[valuesById[128] = "DATA_REPLY"] = 128;
             return values;
         })();
@@ -3114,6 +3130,2118 @@ $root.vacuum = (function() {
             return NoGoZones;
         })();
 
+        v1.RobotSettings = (function() {
+
+            /**
+             * Properties of a RobotSettings.
+             * @typedef {Object} vacuum.v1.RobotSettings.$Properties
+             * @property {number|null} [cleaningSpeed] RobotSettings cleaningSpeed
+             * @property {number|null} [manualSpeed] RobotSettings manualSpeed
+             * @property {number|null} [rowSpacing] RobotSettings rowSpacing
+             * @property {boolean|null} [rowAngleAuto] RobotSettings rowAngleAuto
+             * @property {number|null} [rowAngle] RobotSettings rowAngle
+             * @property {vacuum.v1.RobotSettings.Limits.$Properties|null} [limits] RobotSettings limits
+             * @property {number|null} [manualTurnSpeed] RobotSettings manualTurnSpeed
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+
+            /**
+             * Properties of a RobotSettings.
+             * @memberof vacuum.v1
+             * @interface IRobotSettings
+             * @augments vacuum.v1.RobotSettings.$Properties
+             * @deprecated Use vacuum.v1.RobotSettings.$Properties instead.
+             */
+
+            /**
+             * Shape of a RobotSettings.
+             * @typedef {vacuum.v1.RobotSettings.$Properties} vacuum.v1.RobotSettings.$Shape
+             */
+
+            /**
+             * Constructs a new RobotSettings.
+             * @memberof vacuum.v1
+             * @classdesc Represents a RobotSettings.
+             * @constructor
+             * @param {vacuum.v1.RobotSettings.$Properties=} [properties] Properties to set
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+            var RobotSettings = function (properties) {
+                if (properties)
+                    for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                            this[keys[i]] = properties[keys[i]];
+            };
+
+            /**
+             * RobotSettings cleaningSpeed.
+             * @member {number} cleaningSpeed
+             * @memberof vacuum.v1.RobotSettings
+             * @instance
+             */
+            RobotSettings.prototype.cleaningSpeed = 0;
+
+            /**
+             * RobotSettings manualSpeed.
+             * @member {number} manualSpeed
+             * @memberof vacuum.v1.RobotSettings
+             * @instance
+             */
+            RobotSettings.prototype.manualSpeed = 0;
+
+            /**
+             * RobotSettings rowSpacing.
+             * @member {number} rowSpacing
+             * @memberof vacuum.v1.RobotSettings
+             * @instance
+             */
+            RobotSettings.prototype.rowSpacing = 0;
+
+            /**
+             * RobotSettings rowAngleAuto.
+             * @member {boolean} rowAngleAuto
+             * @memberof vacuum.v1.RobotSettings
+             * @instance
+             */
+            RobotSettings.prototype.rowAngleAuto = false;
+
+            /**
+             * RobotSettings rowAngle.
+             * @member {number} rowAngle
+             * @memberof vacuum.v1.RobotSettings
+             * @instance
+             */
+            RobotSettings.prototype.rowAngle = 0;
+
+            /**
+             * RobotSettings limits.
+             * @member {vacuum.v1.RobotSettings.Limits.$Properties|null|undefined} limits
+             * @memberof vacuum.v1.RobotSettings
+             * @instance
+             */
+            RobotSettings.prototype.limits = null;
+
+            /**
+             * RobotSettings manualTurnSpeed.
+             * @member {number} manualTurnSpeed
+             * @memberof vacuum.v1.RobotSettings
+             * @instance
+             */
+            RobotSettings.prototype.manualTurnSpeed = 0;
+
+            /**
+             * Creates a new RobotSettings instance using the specified properties.
+             * @function create
+             * @memberof vacuum.v1.RobotSettings
+             * @static
+             * @param {vacuum.v1.RobotSettings.$Properties=} [properties] Properties to set
+             * @returns {vacuum.v1.RobotSettings} RobotSettings instance
+             * @type {{
+             *   (properties: vacuum.v1.RobotSettings.$Shape): vacuum.v1.RobotSettings & vacuum.v1.RobotSettings.$Shape;
+             *   (properties?: vacuum.v1.RobotSettings.$Properties): vacuum.v1.RobotSettings;
+             * }}
+             */
+            RobotSettings.create = function(properties) {
+                return new RobotSettings(properties);
+            };
+
+            /**
+             * Encodes the specified RobotSettings message. Does not implicitly {@link vacuum.v1.RobotSettings.verify|verify} messages.
+             * @function encode
+             * @memberof vacuum.v1.RobotSettings
+             * @static
+             * @param {vacuum.v1.RobotSettings.$Properties} message RobotSettings message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            RobotSettings.encode = function (message, writer, _depth) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                if (message.cleaningSpeed != null && $Object.hasOwnProperty.call(message, "cleaningSpeed") && !$Object.is(message.cleaningSpeed, 0))
+                    writer.uint32(/* id 1, wireType 5 =*/13).float(message.cleaningSpeed);
+                if (message.manualSpeed != null && $Object.hasOwnProperty.call(message, "manualSpeed") && !$Object.is(message.manualSpeed, 0))
+                    writer.uint32(/* id 2, wireType 5 =*/21).float(message.manualSpeed);
+                if (message.rowSpacing != null && $Object.hasOwnProperty.call(message, "rowSpacing") && !$Object.is(message.rowSpacing, 0))
+                    writer.uint32(/* id 3, wireType 5 =*/29).float(message.rowSpacing);
+                if (message.rowAngleAuto != null && $Object.hasOwnProperty.call(message, "rowAngleAuto") && message.rowAngleAuto !== false)
+                    writer.uint32(/* id 4, wireType 0 =*/32).bool(message.rowAngleAuto);
+                if (message.rowAngle != null && $Object.hasOwnProperty.call(message, "rowAngle") && !$Object.is(message.rowAngle, 0))
+                    writer.uint32(/* id 5, wireType 5 =*/45).float(message.rowAngle);
+                if (message.limits != null && $Object.hasOwnProperty.call(message, "limits"))
+                    $root.vacuum.v1.RobotSettings.Limits.encode(message.limits, writer.uint32(/* id 6, wireType 2 =*/50).fork(), _depth + 1).ldelim();
+                if (message.manualTurnSpeed != null && $Object.hasOwnProperty.call(message, "manualTurnSpeed") && !$Object.is(message.manualTurnSpeed, 0))
+                    writer.uint32(/* id 7, wireType 5 =*/61).float(message.manualTurnSpeed);
+                if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
+                    for (var i = 0; i < message.$unknowns.length; ++i)
+                        writer.raw(message.$unknowns[i]);
+                return writer;
+            };
+
+            /**
+             * Decodes a RobotSettings message from the specified reader or buffer.
+             * @function decode
+             * @memberof vacuum.v1.RobotSettings
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {vacuum.v1.RobotSettings & vacuum.v1.RobotSettings.$Shape} RobotSettings
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            RobotSettings.decode = function (reader, length, _end, _depth, _target) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $Reader.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var end, message, value;
+                if (length === $undefined)
+                    end = reader.len;
+                else {
+                    end = reader.pos + length;
+                    if (end > reader.len)
+                        throw $RangeError("index out of range");
+                    length = reader.len;
+                    reader.len = end;
+                }
+                message = _target || new $root.vacuum.v1.RobotSettings();
+                while (reader.pos < end) {
+                    var start = reader.pos;
+                    var tag = reader.tag();
+                    if (tag === _end) {
+                        _end = $undefined;
+                        break;
+                    }
+                    var wireType = tag & 7;
+                    switch (tag >>>= 3) {
+                    case 1: {
+                            if (wireType !== 5)
+                                break;
+                            if (!$Object.is(value = reader.float(), 0))
+                                message.cleaningSpeed = value;
+                            else
+                                delete message.cleaningSpeed;
+                            continue;
+                        }
+                    case 2: {
+                            if (wireType !== 5)
+                                break;
+                            if (!$Object.is(value = reader.float(), 0))
+                                message.manualSpeed = value;
+                            else
+                                delete message.manualSpeed;
+                            continue;
+                        }
+                    case 3: {
+                            if (wireType !== 5)
+                                break;
+                            if (!$Object.is(value = reader.float(), 0))
+                                message.rowSpacing = value;
+                            else
+                                delete message.rowSpacing;
+                            continue;
+                        }
+                    case 4: {
+                            if (wireType !== 0)
+                                break;
+                            if (value = reader.bool())
+                                message.rowAngleAuto = value;
+                            else
+                                delete message.rowAngleAuto;
+                            continue;
+                        }
+                    case 5: {
+                            if (wireType !== 5)
+                                break;
+                            if (!$Object.is(value = reader.float(), 0))
+                                message.rowAngle = value;
+                            else
+                                delete message.rowAngle;
+                            continue;
+                        }
+                    case 6: {
+                            if (wireType !== 2)
+                                break;
+                            message.limits = $root.vacuum.v1.RobotSettings.Limits.decode(reader, reader.size(), $undefined, _depth + 1, message.limits);
+                            continue;
+                        }
+                    case 7: {
+                            if (wireType !== 5)
+                                break;
+                            if (!$Object.is(value = reader.float(), 0))
+                                message.manualTurnSpeed = value;
+                            else
+                                delete message.manualTurnSpeed;
+                            continue;
+                        }
+                    }
+                    reader.skipType(wireType, _depth, tag);
+                    if (!reader.discardUnknown) {
+                        $util.makeProp(message, "$unknowns", false);
+                        (message.$unknowns || (message.$unknowns = [])).push(reader.raw(start, reader.pos));
+                    }
+                }
+                if (length !== $undefined) {
+                    if (reader.pos !== end)
+                        throw $RangeError("index out of range");
+                    reader.len = length;
+                }
+                if (_end !== $undefined)
+                    throw $Error("missing end group");
+                return message;
+            };
+
+            /**
+             * Verifies a RobotSettings message.
+             * @function verify
+             * @memberof vacuum.v1.RobotSettings
+             * @static
+             * @param {Object.<string,*>} message Plain object to verify
+             * @returns {string|null} `null` if valid, otherwise the reason why it is not
+             */
+            RobotSettings.verify = function (message, _depth) {
+                if (typeof message !== "object" || message === null)
+                    return "object expected";
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    return "max depth exceeded";
+                if (message.cleaningSpeed != null && $Object.hasOwnProperty.call(message, "cleaningSpeed"))
+                    if (typeof message.cleaningSpeed !== "number")
+                        return "cleaningSpeed: number expected";
+                if (message.manualSpeed != null && $Object.hasOwnProperty.call(message, "manualSpeed"))
+                    if (typeof message.manualSpeed !== "number")
+                        return "manualSpeed: number expected";
+                if (message.rowSpacing != null && $Object.hasOwnProperty.call(message, "rowSpacing"))
+                    if (typeof message.rowSpacing !== "number")
+                        return "rowSpacing: number expected";
+                if (message.rowAngleAuto != null && $Object.hasOwnProperty.call(message, "rowAngleAuto"))
+                    if (typeof message.rowAngleAuto !== "boolean")
+                        return "rowAngleAuto: boolean expected";
+                if (message.rowAngle != null && $Object.hasOwnProperty.call(message, "rowAngle"))
+                    if (typeof message.rowAngle !== "number")
+                        return "rowAngle: number expected";
+                if (message.limits != null && $Object.hasOwnProperty.call(message, "limits")) {
+                    var error = $root.vacuum.v1.RobotSettings.Limits.verify(message.limits, _depth + 1);
+                    if (error)
+                        return "limits." + error;
+                }
+                if (message.manualTurnSpeed != null && $Object.hasOwnProperty.call(message, "manualTurnSpeed"))
+                    if (typeof message.manualTurnSpeed !== "number")
+                        return "manualTurnSpeed: number expected";
+                return null;
+            };
+
+            /**
+             * Creates a RobotSettings message from a plain object. Also converts values to their respective internal types.
+             * @function fromObject
+             * @memberof vacuum.v1.RobotSettings
+             * @static
+             * @param {Object.<string,*>} object Plain object
+             * @returns {vacuum.v1.RobotSettings} RobotSettings
+             */
+            RobotSettings.fromObject = function (object, _depth) {
+                if (object instanceof $root.vacuum.v1.RobotSettings)
+                    return object;
+                if (!$util.isObject(object))
+                    throw $TypeError(".vacuum.v1.RobotSettings: object expected");
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var message = new $root.vacuum.v1.RobotSettings();
+                if (object.cleaningSpeed != null)
+                    if (!$Object.is($Number(object.cleaningSpeed), 0))
+                        message.cleaningSpeed = $Number(object.cleaningSpeed);
+                if (object.manualSpeed != null)
+                    if (!$Object.is($Number(object.manualSpeed), 0))
+                        message.manualSpeed = $Number(object.manualSpeed);
+                if (object.rowSpacing != null)
+                    if (!$Object.is($Number(object.rowSpacing), 0))
+                        message.rowSpacing = $Number(object.rowSpacing);
+                if (object.rowAngleAuto != null)
+                    if (object.rowAngleAuto)
+                        message.rowAngleAuto = $Boolean(object.rowAngleAuto);
+                if (object.rowAngle != null)
+                    if (!$Object.is($Number(object.rowAngle), 0))
+                        message.rowAngle = $Number(object.rowAngle);
+                if (object.limits != null) {
+                    if (!$util.isObject(object.limits))
+                        throw $TypeError(".vacuum.v1.RobotSettings.limits: object expected");
+                    message.limits = $root.vacuum.v1.RobotSettings.Limits.fromObject(object.limits, _depth + 1);
+                }
+                if (object.manualTurnSpeed != null)
+                    if (!$Object.is($Number(object.manualTurnSpeed), 0))
+                        message.manualTurnSpeed = $Number(object.manualTurnSpeed);
+                return message;
+            };
+
+            /**
+             * Creates a plain object from a RobotSettings message. Also converts values to other types if specified.
+             * @function toObject
+             * @memberof vacuum.v1.RobotSettings
+             * @static
+             * @param {vacuum.v1.RobotSettings} message RobotSettings
+             * @param {$protobuf.IConversionOptions} [options] Conversion options
+             * @returns {Object.<string,*>} Plain object
+             */
+            RobotSettings.toObject = function (message, options, _depth) {
+                if (!options)
+                    options = {};
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var object = {};
+                if (options.defaults) {
+                    object.cleaningSpeed = 0;
+                    object.manualSpeed = 0;
+                    object.rowSpacing = 0;
+                    object.rowAngleAuto = false;
+                    object.rowAngle = 0;
+                    object.limits = null;
+                    object.manualTurnSpeed = 0;
+                }
+                if (message.cleaningSpeed != null && $Object.hasOwnProperty.call(message, "cleaningSpeed"))
+                    object.cleaningSpeed = options.json && !$isFinite(message.cleaningSpeed) ? $String(message.cleaningSpeed) : message.cleaningSpeed;
+                if (message.manualSpeed != null && $Object.hasOwnProperty.call(message, "manualSpeed"))
+                    object.manualSpeed = options.json && !$isFinite(message.manualSpeed) ? $String(message.manualSpeed) : message.manualSpeed;
+                if (message.rowSpacing != null && $Object.hasOwnProperty.call(message, "rowSpacing"))
+                    object.rowSpacing = options.json && !$isFinite(message.rowSpacing) ? $String(message.rowSpacing) : message.rowSpacing;
+                if (message.rowAngleAuto != null && $Object.hasOwnProperty.call(message, "rowAngleAuto"))
+                    object.rowAngleAuto = message.rowAngleAuto;
+                if (message.rowAngle != null && $Object.hasOwnProperty.call(message, "rowAngle"))
+                    object.rowAngle = options.json && !$isFinite(message.rowAngle) ? $String(message.rowAngle) : message.rowAngle;
+                if (message.limits != null && $Object.hasOwnProperty.call(message, "limits"))
+                    object.limits = $root.vacuum.v1.RobotSettings.Limits.toObject(message.limits, options, _depth + 1);
+                if (message.manualTurnSpeed != null && $Object.hasOwnProperty.call(message, "manualTurnSpeed"))
+                    object.manualTurnSpeed = options.json && !$isFinite(message.manualTurnSpeed) ? $String(message.manualTurnSpeed) : message.manualTurnSpeed;
+                return object;
+            };
+
+            /**
+             * Converts this RobotSettings to JSON.
+             * @function toJSON
+             * @memberof vacuum.v1.RobotSettings
+             * @instance
+             * @returns {Object.<string,*>} JSON object
+             */
+            RobotSettings.prototype.toJSON = function() {
+                return RobotSettings.toObject(this, $protobuf.util.toJSONOptions);
+            };
+
+            RobotSettings.Limits = (function() {
+
+                /**
+                 * Properties of a Limits.
+                 * @typedef {Object} vacuum.v1.RobotSettings.Limits.$Properties
+                 * @property {number|null} [cleaningSpeedMin] Limits cleaningSpeedMin
+                 * @property {number|null} [cleaningSpeedMax] Limits cleaningSpeedMax
+                 * @property {number|null} [manualSpeedMin] Limits manualSpeedMin
+                 * @property {number|null} [manualSpeedMax] Limits manualSpeedMax
+                 * @property {number|null} [rowSpacingMin] Limits rowSpacingMin
+                 * @property {number|null} [rowSpacingMax] Limits rowSpacingMax
+                 * @property {number|null} [rowSpacingStep] Limits rowSpacingStep
+                 * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+                 */
+
+                /**
+                 * Properties of a Limits.
+                 * @memberof vacuum.v1.RobotSettings
+                 * @interface ILimits
+                 * @augments vacuum.v1.RobotSettings.Limits.$Properties
+                 * @deprecated Use vacuum.v1.RobotSettings.Limits.$Properties instead.
+                 */
+
+                /**
+                 * Shape of a Limits.
+                 * @typedef {vacuum.v1.RobotSettings.Limits.$Properties} vacuum.v1.RobotSettings.Limits.$Shape
+                 */
+
+                /**
+                 * Constructs a new Limits.
+                 * @memberof vacuum.v1.RobotSettings
+                 * @classdesc Represents a Limits.
+                 * @constructor
+                 * @param {vacuum.v1.RobotSettings.Limits.$Properties=} [properties] Properties to set
+                 * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+                 */
+                var Limits = function (properties) {
+                    if (properties)
+                        for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                                this[keys[i]] = properties[keys[i]];
+                };
+
+                /**
+                 * Limits cleaningSpeedMin.
+                 * @member {number} cleaningSpeedMin
+                 * @memberof vacuum.v1.RobotSettings.Limits
+                 * @instance
+                 */
+                Limits.prototype.cleaningSpeedMin = 0;
+
+                /**
+                 * Limits cleaningSpeedMax.
+                 * @member {number} cleaningSpeedMax
+                 * @memberof vacuum.v1.RobotSettings.Limits
+                 * @instance
+                 */
+                Limits.prototype.cleaningSpeedMax = 0;
+
+                /**
+                 * Limits manualSpeedMin.
+                 * @member {number} manualSpeedMin
+                 * @memberof vacuum.v1.RobotSettings.Limits
+                 * @instance
+                 */
+                Limits.prototype.manualSpeedMin = 0;
+
+                /**
+                 * Limits manualSpeedMax.
+                 * @member {number} manualSpeedMax
+                 * @memberof vacuum.v1.RobotSettings.Limits
+                 * @instance
+                 */
+                Limits.prototype.manualSpeedMax = 0;
+
+                /**
+                 * Limits rowSpacingMin.
+                 * @member {number} rowSpacingMin
+                 * @memberof vacuum.v1.RobotSettings.Limits
+                 * @instance
+                 */
+                Limits.prototype.rowSpacingMin = 0;
+
+                /**
+                 * Limits rowSpacingMax.
+                 * @member {number} rowSpacingMax
+                 * @memberof vacuum.v1.RobotSettings.Limits
+                 * @instance
+                 */
+                Limits.prototype.rowSpacingMax = 0;
+
+                /**
+                 * Limits rowSpacingStep.
+                 * @member {number} rowSpacingStep
+                 * @memberof vacuum.v1.RobotSettings.Limits
+                 * @instance
+                 */
+                Limits.prototype.rowSpacingStep = 0;
+
+                /**
+                 * Creates a new Limits instance using the specified properties.
+                 * @function create
+                 * @memberof vacuum.v1.RobotSettings.Limits
+                 * @static
+                 * @param {vacuum.v1.RobotSettings.Limits.$Properties=} [properties] Properties to set
+                 * @returns {vacuum.v1.RobotSettings.Limits} Limits instance
+                 * @type {{
+                 *   (properties: vacuum.v1.RobotSettings.Limits.$Shape): vacuum.v1.RobotSettings.Limits & vacuum.v1.RobotSettings.Limits.$Shape;
+                 *   (properties?: vacuum.v1.RobotSettings.Limits.$Properties): vacuum.v1.RobotSettings.Limits;
+                 * }}
+                 */
+                Limits.create = function(properties) {
+                    return new Limits(properties);
+                };
+
+                /**
+                 * Encodes the specified Limits message. Does not implicitly {@link vacuum.v1.RobotSettings.Limits.verify|verify} messages.
+                 * @function encode
+                 * @memberof vacuum.v1.RobotSettings.Limits
+                 * @static
+                 * @param {vacuum.v1.RobotSettings.Limits.$Properties} message Limits message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                Limits.encode = function (message, writer, _depth) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (_depth === $undefined)
+                        _depth = 0;
+                    if (_depth > $util.recursionLimit)
+                        throw $Error("max depth exceeded");
+                    if (message.cleaningSpeedMin != null && $Object.hasOwnProperty.call(message, "cleaningSpeedMin") && !$Object.is(message.cleaningSpeedMin, 0))
+                        writer.uint32(/* id 1, wireType 5 =*/13).float(message.cleaningSpeedMin);
+                    if (message.cleaningSpeedMax != null && $Object.hasOwnProperty.call(message, "cleaningSpeedMax") && !$Object.is(message.cleaningSpeedMax, 0))
+                        writer.uint32(/* id 2, wireType 5 =*/21).float(message.cleaningSpeedMax);
+                    if (message.manualSpeedMin != null && $Object.hasOwnProperty.call(message, "manualSpeedMin") && !$Object.is(message.manualSpeedMin, 0))
+                        writer.uint32(/* id 3, wireType 5 =*/29).float(message.manualSpeedMin);
+                    if (message.manualSpeedMax != null && $Object.hasOwnProperty.call(message, "manualSpeedMax") && !$Object.is(message.manualSpeedMax, 0))
+                        writer.uint32(/* id 4, wireType 5 =*/37).float(message.manualSpeedMax);
+                    if (message.rowSpacingMin != null && $Object.hasOwnProperty.call(message, "rowSpacingMin") && !$Object.is(message.rowSpacingMin, 0))
+                        writer.uint32(/* id 5, wireType 5 =*/45).float(message.rowSpacingMin);
+                    if (message.rowSpacingMax != null && $Object.hasOwnProperty.call(message, "rowSpacingMax") && !$Object.is(message.rowSpacingMax, 0))
+                        writer.uint32(/* id 6, wireType 5 =*/53).float(message.rowSpacingMax);
+                    if (message.rowSpacingStep != null && $Object.hasOwnProperty.call(message, "rowSpacingStep") && !$Object.is(message.rowSpacingStep, 0))
+                        writer.uint32(/* id 7, wireType 5 =*/61).float(message.rowSpacingStep);
+                    if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
+                        for (var i = 0; i < message.$unknowns.length; ++i)
+                            writer.raw(message.$unknowns[i]);
+                    return writer;
+                };
+
+                /**
+                 * Decodes a Limits message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof vacuum.v1.RobotSettings.Limits
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {vacuum.v1.RobotSettings.Limits & vacuum.v1.RobotSettings.Limits.$Shape} Limits
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                Limits.decode = function (reader, length, _end, _depth, _target) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    if (_depth === $undefined)
+                        _depth = 0;
+                    if (_depth > $Reader.recursionLimit)
+                        throw $Error("max depth exceeded");
+                    var end, message, value;
+                    if (length === $undefined)
+                        end = reader.len;
+                    else {
+                        end = reader.pos + length;
+                        if (end > reader.len)
+                            throw $RangeError("index out of range");
+                        length = reader.len;
+                        reader.len = end;
+                    }
+                    message = _target || new $root.vacuum.v1.RobotSettings.Limits();
+                    while (reader.pos < end) {
+                        var start = reader.pos;
+                        var tag = reader.tag();
+                        if (tag === _end) {
+                            _end = $undefined;
+                            break;
+                        }
+                        var wireType = tag & 7;
+                        switch (tag >>>= 3) {
+                        case 1: {
+                                if (wireType !== 5)
+                                    break;
+                                if (!$Object.is(value = reader.float(), 0))
+                                    message.cleaningSpeedMin = value;
+                                else
+                                    delete message.cleaningSpeedMin;
+                                continue;
+                            }
+                        case 2: {
+                                if (wireType !== 5)
+                                    break;
+                                if (!$Object.is(value = reader.float(), 0))
+                                    message.cleaningSpeedMax = value;
+                                else
+                                    delete message.cleaningSpeedMax;
+                                continue;
+                            }
+                        case 3: {
+                                if (wireType !== 5)
+                                    break;
+                                if (!$Object.is(value = reader.float(), 0))
+                                    message.manualSpeedMin = value;
+                                else
+                                    delete message.manualSpeedMin;
+                                continue;
+                            }
+                        case 4: {
+                                if (wireType !== 5)
+                                    break;
+                                if (!$Object.is(value = reader.float(), 0))
+                                    message.manualSpeedMax = value;
+                                else
+                                    delete message.manualSpeedMax;
+                                continue;
+                            }
+                        case 5: {
+                                if (wireType !== 5)
+                                    break;
+                                if (!$Object.is(value = reader.float(), 0))
+                                    message.rowSpacingMin = value;
+                                else
+                                    delete message.rowSpacingMin;
+                                continue;
+                            }
+                        case 6: {
+                                if (wireType !== 5)
+                                    break;
+                                if (!$Object.is(value = reader.float(), 0))
+                                    message.rowSpacingMax = value;
+                                else
+                                    delete message.rowSpacingMax;
+                                continue;
+                            }
+                        case 7: {
+                                if (wireType !== 5)
+                                    break;
+                                if (!$Object.is(value = reader.float(), 0))
+                                    message.rowSpacingStep = value;
+                                else
+                                    delete message.rowSpacingStep;
+                                continue;
+                            }
+                        }
+                        reader.skipType(wireType, _depth, tag);
+                        if (!reader.discardUnknown) {
+                            $util.makeProp(message, "$unknowns", false);
+                            (message.$unknowns || (message.$unknowns = [])).push(reader.raw(start, reader.pos));
+                        }
+                    }
+                    if (length !== $undefined) {
+                        if (reader.pos !== end)
+                            throw $RangeError("index out of range");
+                        reader.len = length;
+                    }
+                    if (_end !== $undefined)
+                        throw $Error("missing end group");
+                    return message;
+                };
+
+                /**
+                 * Verifies a Limits message.
+                 * @function verify
+                 * @memberof vacuum.v1.RobotSettings.Limits
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                Limits.verify = function (message, _depth) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (_depth === $undefined)
+                        _depth = 0;
+                    if (_depth > $util.recursionLimit)
+                        return "max depth exceeded";
+                    if (message.cleaningSpeedMin != null && $Object.hasOwnProperty.call(message, "cleaningSpeedMin"))
+                        if (typeof message.cleaningSpeedMin !== "number")
+                            return "cleaningSpeedMin: number expected";
+                    if (message.cleaningSpeedMax != null && $Object.hasOwnProperty.call(message, "cleaningSpeedMax"))
+                        if (typeof message.cleaningSpeedMax !== "number")
+                            return "cleaningSpeedMax: number expected";
+                    if (message.manualSpeedMin != null && $Object.hasOwnProperty.call(message, "manualSpeedMin"))
+                        if (typeof message.manualSpeedMin !== "number")
+                            return "manualSpeedMin: number expected";
+                    if (message.manualSpeedMax != null && $Object.hasOwnProperty.call(message, "manualSpeedMax"))
+                        if (typeof message.manualSpeedMax !== "number")
+                            return "manualSpeedMax: number expected";
+                    if (message.rowSpacingMin != null && $Object.hasOwnProperty.call(message, "rowSpacingMin"))
+                        if (typeof message.rowSpacingMin !== "number")
+                            return "rowSpacingMin: number expected";
+                    if (message.rowSpacingMax != null && $Object.hasOwnProperty.call(message, "rowSpacingMax"))
+                        if (typeof message.rowSpacingMax !== "number")
+                            return "rowSpacingMax: number expected";
+                    if (message.rowSpacingStep != null && $Object.hasOwnProperty.call(message, "rowSpacingStep"))
+                        if (typeof message.rowSpacingStep !== "number")
+                            return "rowSpacingStep: number expected";
+                    return null;
+                };
+
+                /**
+                 * Creates a Limits message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof vacuum.v1.RobotSettings.Limits
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {vacuum.v1.RobotSettings.Limits} Limits
+                 */
+                Limits.fromObject = function (object, _depth) {
+                    if (object instanceof $root.vacuum.v1.RobotSettings.Limits)
+                        return object;
+                    if (!$util.isObject(object))
+                        throw $TypeError(".vacuum.v1.RobotSettings.Limits: object expected");
+                    if (_depth === $undefined)
+                        _depth = 0;
+                    if (_depth > $util.recursionLimit)
+                        throw $Error("max depth exceeded");
+                    var message = new $root.vacuum.v1.RobotSettings.Limits();
+                    if (object.cleaningSpeedMin != null)
+                        if (!$Object.is($Number(object.cleaningSpeedMin), 0))
+                            message.cleaningSpeedMin = $Number(object.cleaningSpeedMin);
+                    if (object.cleaningSpeedMax != null)
+                        if (!$Object.is($Number(object.cleaningSpeedMax), 0))
+                            message.cleaningSpeedMax = $Number(object.cleaningSpeedMax);
+                    if (object.manualSpeedMin != null)
+                        if (!$Object.is($Number(object.manualSpeedMin), 0))
+                            message.manualSpeedMin = $Number(object.manualSpeedMin);
+                    if (object.manualSpeedMax != null)
+                        if (!$Object.is($Number(object.manualSpeedMax), 0))
+                            message.manualSpeedMax = $Number(object.manualSpeedMax);
+                    if (object.rowSpacingMin != null)
+                        if (!$Object.is($Number(object.rowSpacingMin), 0))
+                            message.rowSpacingMin = $Number(object.rowSpacingMin);
+                    if (object.rowSpacingMax != null)
+                        if (!$Object.is($Number(object.rowSpacingMax), 0))
+                            message.rowSpacingMax = $Number(object.rowSpacingMax);
+                    if (object.rowSpacingStep != null)
+                        if (!$Object.is($Number(object.rowSpacingStep), 0))
+                            message.rowSpacingStep = $Number(object.rowSpacingStep);
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from a Limits message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof vacuum.v1.RobotSettings.Limits
+                 * @static
+                 * @param {vacuum.v1.RobotSettings.Limits} message Limits
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                Limits.toObject = function (message, options, _depth) {
+                    if (!options)
+                        options = {};
+                    if (_depth === $undefined)
+                        _depth = 0;
+                    if (_depth > $util.recursionLimit)
+                        throw $Error("max depth exceeded");
+                    var object = {};
+                    if (options.defaults) {
+                        object.cleaningSpeedMin = 0;
+                        object.cleaningSpeedMax = 0;
+                        object.manualSpeedMin = 0;
+                        object.manualSpeedMax = 0;
+                        object.rowSpacingMin = 0;
+                        object.rowSpacingMax = 0;
+                        object.rowSpacingStep = 0;
+                    }
+                    if (message.cleaningSpeedMin != null && $Object.hasOwnProperty.call(message, "cleaningSpeedMin"))
+                        object.cleaningSpeedMin = options.json && !$isFinite(message.cleaningSpeedMin) ? $String(message.cleaningSpeedMin) : message.cleaningSpeedMin;
+                    if (message.cleaningSpeedMax != null && $Object.hasOwnProperty.call(message, "cleaningSpeedMax"))
+                        object.cleaningSpeedMax = options.json && !$isFinite(message.cleaningSpeedMax) ? $String(message.cleaningSpeedMax) : message.cleaningSpeedMax;
+                    if (message.manualSpeedMin != null && $Object.hasOwnProperty.call(message, "manualSpeedMin"))
+                        object.manualSpeedMin = options.json && !$isFinite(message.manualSpeedMin) ? $String(message.manualSpeedMin) : message.manualSpeedMin;
+                    if (message.manualSpeedMax != null && $Object.hasOwnProperty.call(message, "manualSpeedMax"))
+                        object.manualSpeedMax = options.json && !$isFinite(message.manualSpeedMax) ? $String(message.manualSpeedMax) : message.manualSpeedMax;
+                    if (message.rowSpacingMin != null && $Object.hasOwnProperty.call(message, "rowSpacingMin"))
+                        object.rowSpacingMin = options.json && !$isFinite(message.rowSpacingMin) ? $String(message.rowSpacingMin) : message.rowSpacingMin;
+                    if (message.rowSpacingMax != null && $Object.hasOwnProperty.call(message, "rowSpacingMax"))
+                        object.rowSpacingMax = options.json && !$isFinite(message.rowSpacingMax) ? $String(message.rowSpacingMax) : message.rowSpacingMax;
+                    if (message.rowSpacingStep != null && $Object.hasOwnProperty.call(message, "rowSpacingStep"))
+                        object.rowSpacingStep = options.json && !$isFinite(message.rowSpacingStep) ? $String(message.rowSpacingStep) : message.rowSpacingStep;
+                    return object;
+                };
+
+                /**
+                 * Converts this Limits to JSON.
+                 * @function toJSON
+                 * @memberof vacuum.v1.RobotSettings.Limits
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                Limits.prototype.toJSON = function() {
+                    return Limits.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                return Limits;
+            })();
+
+            return RobotSettings;
+        })();
+
+        v1.Rooms = (function() {
+
+            /**
+             * Properties of a Rooms.
+             * @typedef {Object} vacuum.v1.Rooms.$Properties
+             * @property {Array.<vacuum.v1.Rooms.Room.$Properties>|null} [rooms] Rooms rooms
+             * @property {string|null} [mapName] Rooms mapName
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+
+            /**
+             * Properties of a Rooms.
+             * @memberof vacuum.v1
+             * @interface IRooms
+             * @augments vacuum.v1.Rooms.$Properties
+             * @deprecated Use vacuum.v1.Rooms.$Properties instead.
+             */
+
+            /**
+             * Shape of a Rooms.
+             * @typedef {vacuum.v1.Rooms.$Properties} vacuum.v1.Rooms.$Shape
+             */
+
+            /**
+             * Constructs a new Rooms.
+             * @memberof vacuum.v1
+             * @classdesc Represents a Rooms.
+             * @constructor
+             * @param {vacuum.v1.Rooms.$Properties=} [properties] Properties to set
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+            var Rooms = function (properties) {
+                this.rooms = [];
+                if (properties)
+                    for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                            this[keys[i]] = properties[keys[i]];
+            };
+
+            /**
+             * Rooms rooms.
+             * @member {Array.<vacuum.v1.Rooms.Room.$Properties>} rooms
+             * @memberof vacuum.v1.Rooms
+             * @instance
+             */
+            Rooms.prototype.rooms = $util.emptyArray;
+
+            /**
+             * Rooms mapName.
+             * @member {string} mapName
+             * @memberof vacuum.v1.Rooms
+             * @instance
+             */
+            Rooms.prototype.mapName = "";
+
+            /**
+             * Creates a new Rooms instance using the specified properties.
+             * @function create
+             * @memberof vacuum.v1.Rooms
+             * @static
+             * @param {vacuum.v1.Rooms.$Properties=} [properties] Properties to set
+             * @returns {vacuum.v1.Rooms} Rooms instance
+             * @type {{
+             *   (properties: vacuum.v1.Rooms.$Shape): vacuum.v1.Rooms & vacuum.v1.Rooms.$Shape;
+             *   (properties?: vacuum.v1.Rooms.$Properties): vacuum.v1.Rooms;
+             * }}
+             */
+            Rooms.create = function(properties) {
+                return new Rooms(properties);
+            };
+
+            /**
+             * Encodes the specified Rooms message. Does not implicitly {@link vacuum.v1.Rooms.verify|verify} messages.
+             * @function encode
+             * @memberof vacuum.v1.Rooms
+             * @static
+             * @param {vacuum.v1.Rooms.$Properties} message Rooms message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            Rooms.encode = function (message, writer, _depth) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                if (message.rooms != null && message.rooms.length)
+                    for (var i = 0; i < message.rooms.length; ++i)
+                        $root.vacuum.v1.Rooms.Room.encode(message.rooms[i], writer.uint32(/* id 1, wireType 2 =*/10).fork(), _depth + 1).ldelim();
+                if (message.mapName != null && $Object.hasOwnProperty.call(message, "mapName") && message.mapName !== "")
+                    writer.uint32(/* id 2, wireType 2 =*/18).string(message.mapName);
+                if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
+                    for (var i = 0; i < message.$unknowns.length; ++i)
+                        writer.raw(message.$unknowns[i]);
+                return writer;
+            };
+
+            /**
+             * Decodes a Rooms message from the specified reader or buffer.
+             * @function decode
+             * @memberof vacuum.v1.Rooms
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {vacuum.v1.Rooms & vacuum.v1.Rooms.$Shape} Rooms
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            Rooms.decode = function (reader, length, _end, _depth, _target) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $Reader.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var end, message, value;
+                if (length === $undefined)
+                    end = reader.len;
+                else {
+                    end = reader.pos + length;
+                    if (end > reader.len)
+                        throw $RangeError("index out of range");
+                    length = reader.len;
+                    reader.len = end;
+                }
+                message = _target || new $root.vacuum.v1.Rooms();
+                while (reader.pos < end) {
+                    var start = reader.pos;
+                    var tag = reader.tag();
+                    if (tag === _end) {
+                        _end = $undefined;
+                        break;
+                    }
+                    var wireType = tag & 7;
+                    switch (tag >>>= 3) {
+                    case 1: {
+                            if (wireType !== 2)
+                                break;
+                            if (!(message.rooms && message.rooms.length))
+                                message.rooms = [];
+                            message.rooms.push($root.vacuum.v1.Rooms.Room.decode(reader, reader.size(), $undefined, _depth + 1));
+                            continue;
+                        }
+                    case 2: {
+                            if (wireType !== 2)
+                                break;
+                            if ((value = reader.stringVerify()).length)
+                                message.mapName = value;
+                            else
+                                delete message.mapName;
+                            continue;
+                        }
+                    }
+                    reader.skipType(wireType, _depth, tag);
+                    if (!reader.discardUnknown) {
+                        $util.makeProp(message, "$unknowns", false);
+                        (message.$unknowns || (message.$unknowns = [])).push(reader.raw(start, reader.pos));
+                    }
+                }
+                if (length !== $undefined) {
+                    if (reader.pos !== end)
+                        throw $RangeError("index out of range");
+                    reader.len = length;
+                }
+                if (_end !== $undefined)
+                    throw $Error("missing end group");
+                return message;
+            };
+
+            /**
+             * Verifies a Rooms message.
+             * @function verify
+             * @memberof vacuum.v1.Rooms
+             * @static
+             * @param {Object.<string,*>} message Plain object to verify
+             * @returns {string|null} `null` if valid, otherwise the reason why it is not
+             */
+            Rooms.verify = function (message, _depth) {
+                if (typeof message !== "object" || message === null)
+                    return "object expected";
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    return "max depth exceeded";
+                if (message.rooms != null && $Object.hasOwnProperty.call(message, "rooms")) {
+                    if (!$Array.isArray(message.rooms))
+                        return "rooms: array expected";
+                    for (var i = 0; i < message.rooms.length; ++i) {
+                        var error = $root.vacuum.v1.Rooms.Room.verify(message.rooms[i], _depth + 1);
+                        if (error)
+                            return "rooms." + error;
+                    }
+                }
+                if (message.mapName != null && $Object.hasOwnProperty.call(message, "mapName"))
+                    if (!$util.isString(message.mapName))
+                        return "mapName: string expected";
+                return null;
+            };
+
+            /**
+             * Creates a Rooms message from a plain object. Also converts values to their respective internal types.
+             * @function fromObject
+             * @memberof vacuum.v1.Rooms
+             * @static
+             * @param {Object.<string,*>} object Plain object
+             * @returns {vacuum.v1.Rooms} Rooms
+             */
+            Rooms.fromObject = function (object, _depth) {
+                if (object instanceof $root.vacuum.v1.Rooms)
+                    return object;
+                if (!$util.isObject(object))
+                    throw $TypeError(".vacuum.v1.Rooms: object expected");
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var message = new $root.vacuum.v1.Rooms();
+                if (object.rooms) {
+                    if (!$Array.isArray(object.rooms))
+                        throw $TypeError(".vacuum.v1.Rooms.rooms: array expected");
+                    message.rooms = $Array(object.rooms.length);
+                    for (var i = 0; i < object.rooms.length; ++i) {
+                        if (!$util.isObject(object.rooms[i]))
+                            throw $TypeError(".vacuum.v1.Rooms.rooms: object expected");
+                        message.rooms[i] = $root.vacuum.v1.Rooms.Room.fromObject(object.rooms[i], _depth + 1);
+                    }
+                }
+                if (object.mapName != null)
+                    if (typeof object.mapName !== "string" || object.mapName.length)
+                        message.mapName = $String(object.mapName);
+                return message;
+            };
+
+            /**
+             * Creates a plain object from a Rooms message. Also converts values to other types if specified.
+             * @function toObject
+             * @memberof vacuum.v1.Rooms
+             * @static
+             * @param {vacuum.v1.Rooms} message Rooms
+             * @param {$protobuf.IConversionOptions} [options] Conversion options
+             * @returns {Object.<string,*>} Plain object
+             */
+            Rooms.toObject = function (message, options, _depth) {
+                if (!options)
+                    options = {};
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var object = {};
+                if (options.arrays || options.defaults)
+                    object.rooms = [];
+                if (options.defaults)
+                    object.mapName = "";
+                if (message.rooms && message.rooms.length) {
+                    object.rooms = $Array(message.rooms.length);
+                    for (var j = 0; j < message.rooms.length; ++j)
+                        object.rooms[j] = $root.vacuum.v1.Rooms.Room.toObject(message.rooms[j], options, _depth + 1);
+                }
+                if (message.mapName != null && $Object.hasOwnProperty.call(message, "mapName"))
+                    object.mapName = message.mapName;
+                return object;
+            };
+
+            /**
+             * Converts this Rooms to JSON.
+             * @function toJSON
+             * @memberof vacuum.v1.Rooms
+             * @instance
+             * @returns {Object.<string,*>} JSON object
+             */
+            Rooms.prototype.toJSON = function() {
+                return Rooms.toObject(this, $protobuf.util.toJSONOptions);
+            };
+
+            Rooms.Room = (function() {
+
+                /**
+                 * Properties of a Room.
+                 * @typedef {Object} vacuum.v1.Rooms.Room.$Properties
+                 * @property {string|null} [name] Room name
+                 * @property {Array.<number>|null} [pointsCm] Room pointsCm
+                 * @property {number|null} [xCm] Room xCm
+                 * @property {number|null} [yCm] Room yCm
+                 * @property {number|null} [area] Room area
+                 * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+                 */
+
+                /**
+                 * Properties of a Room.
+                 * @memberof vacuum.v1.Rooms
+                 * @interface IRoom
+                 * @augments vacuum.v1.Rooms.Room.$Properties
+                 * @deprecated Use vacuum.v1.Rooms.Room.$Properties instead.
+                 */
+
+                /**
+                 * Shape of a Room.
+                 * @typedef {vacuum.v1.Rooms.Room.$Properties} vacuum.v1.Rooms.Room.$Shape
+                 */
+
+                /**
+                 * Constructs a new Room.
+                 * @memberof vacuum.v1.Rooms
+                 * @classdesc Represents a Room.
+                 * @constructor
+                 * @param {vacuum.v1.Rooms.Room.$Properties=} [properties] Properties to set
+                 * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+                 */
+                var Room = function (properties) {
+                    this.pointsCm = [];
+                    if (properties)
+                        for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                                this[keys[i]] = properties[keys[i]];
+                };
+
+                /**
+                 * Room name.
+                 * @member {string} name
+                 * @memberof vacuum.v1.Rooms.Room
+                 * @instance
+                 */
+                Room.prototype.name = "";
+
+                /**
+                 * Room pointsCm.
+                 * @member {Array.<number>} pointsCm
+                 * @memberof vacuum.v1.Rooms.Room
+                 * @instance
+                 */
+                Room.prototype.pointsCm = $util.emptyArray;
+
+                /**
+                 * Room xCm.
+                 * @member {number} xCm
+                 * @memberof vacuum.v1.Rooms.Room
+                 * @instance
+                 */
+                Room.prototype.xCm = 0;
+
+                /**
+                 * Room yCm.
+                 * @member {number} yCm
+                 * @memberof vacuum.v1.Rooms.Room
+                 * @instance
+                 */
+                Room.prototype.yCm = 0;
+
+                /**
+                 * Room area.
+                 * @member {number} area
+                 * @memberof vacuum.v1.Rooms.Room
+                 * @instance
+                 */
+                Room.prototype.area = 0;
+
+                /**
+                 * Creates a new Room instance using the specified properties.
+                 * @function create
+                 * @memberof vacuum.v1.Rooms.Room
+                 * @static
+                 * @param {vacuum.v1.Rooms.Room.$Properties=} [properties] Properties to set
+                 * @returns {vacuum.v1.Rooms.Room} Room instance
+                 * @type {{
+                 *   (properties: vacuum.v1.Rooms.Room.$Shape): vacuum.v1.Rooms.Room & vacuum.v1.Rooms.Room.$Shape;
+                 *   (properties?: vacuum.v1.Rooms.Room.$Properties): vacuum.v1.Rooms.Room;
+                 * }}
+                 */
+                Room.create = function(properties) {
+                    return new Room(properties);
+                };
+
+                /**
+                 * Encodes the specified Room message. Does not implicitly {@link vacuum.v1.Rooms.Room.verify|verify} messages.
+                 * @function encode
+                 * @memberof vacuum.v1.Rooms.Room
+                 * @static
+                 * @param {vacuum.v1.Rooms.Room.$Properties} message Room message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                Room.encode = function (message, writer, _depth) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (_depth === $undefined)
+                        _depth = 0;
+                    if (_depth > $util.recursionLimit)
+                        throw $Error("max depth exceeded");
+                    if (message.name != null && $Object.hasOwnProperty.call(message, "name") && message.name !== "")
+                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
+                    if (message.pointsCm != null && message.pointsCm.length)
+                        writer.uint32(/* id 2, wireType 2 =*/18).sint32s(message.pointsCm);
+                    if (message.xCm != null && $Object.hasOwnProperty.call(message, "xCm") && message.xCm !== 0)
+                        writer.uint32(/* id 3, wireType 0 =*/24).sint32(message.xCm);
+                    if (message.yCm != null && $Object.hasOwnProperty.call(message, "yCm") && message.yCm !== 0)
+                        writer.uint32(/* id 4, wireType 0 =*/32).sint32(message.yCm);
+                    if (message.area != null && $Object.hasOwnProperty.call(message, "area") && !$Object.is(message.area, 0))
+                        writer.uint32(/* id 5, wireType 5 =*/45).float(message.area);
+                    if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
+                        for (var i = 0; i < message.$unknowns.length; ++i)
+                            writer.raw(message.$unknowns[i]);
+                    return writer;
+                };
+
+                /**
+                 * Decodes a Room message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof vacuum.v1.Rooms.Room
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {vacuum.v1.Rooms.Room & vacuum.v1.Rooms.Room.$Shape} Room
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                Room.decode = function (reader, length, _end, _depth, _target) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    if (_depth === $undefined)
+                        _depth = 0;
+                    if (_depth > $Reader.recursionLimit)
+                        throw $Error("max depth exceeded");
+                    var end, message, value;
+                    if (length === $undefined)
+                        end = reader.len;
+                    else {
+                        end = reader.pos + length;
+                        if (end > reader.len)
+                            throw $RangeError("index out of range");
+                        length = reader.len;
+                        reader.len = end;
+                    }
+                    message = _target || new $root.vacuum.v1.Rooms.Room();
+                    while (reader.pos < end) {
+                        var start = reader.pos;
+                        var tag = reader.tag();
+                        if (tag === _end) {
+                            _end = $undefined;
+                            break;
+                        }
+                        var wireType = tag & 7;
+                        switch (tag >>>= 3) {
+                        case 1: {
+                                if (wireType !== 2)
+                                    break;
+                                if ((value = reader.stringVerify()).length)
+                                    message.name = value;
+                                else
+                                    delete message.name;
+                                continue;
+                            }
+                        case 2: {
+                                if (wireType === 2) {
+                                    if (!(message.pointsCm && message.pointsCm.length))
+                                        message.pointsCm = [];
+                                    reader.sint32s(message.pointsCm);
+                                    continue;
+                                }
+                                if (wireType !== 0)
+                                    break;
+                                if (!(message.pointsCm && message.pointsCm.length))
+                                    message.pointsCm = [];
+                                message.pointsCm.push(reader.sint32());
+                                continue;
+                            }
+                        case 3: {
+                                if (wireType !== 0)
+                                    break;
+                                if (value = reader.sint32())
+                                    message.xCm = value;
+                                else
+                                    delete message.xCm;
+                                continue;
+                            }
+                        case 4: {
+                                if (wireType !== 0)
+                                    break;
+                                if (value = reader.sint32())
+                                    message.yCm = value;
+                                else
+                                    delete message.yCm;
+                                continue;
+                            }
+                        case 5: {
+                                if (wireType !== 5)
+                                    break;
+                                if (!$Object.is(value = reader.float(), 0))
+                                    message.area = value;
+                                else
+                                    delete message.area;
+                                continue;
+                            }
+                        }
+                        reader.skipType(wireType, _depth, tag);
+                        if (!reader.discardUnknown) {
+                            $util.makeProp(message, "$unknowns", false);
+                            (message.$unknowns || (message.$unknowns = [])).push(reader.raw(start, reader.pos));
+                        }
+                    }
+                    if (length !== $undefined) {
+                        if (reader.pos !== end)
+                            throw $RangeError("index out of range");
+                        reader.len = length;
+                    }
+                    if (_end !== $undefined)
+                        throw $Error("missing end group");
+                    return message;
+                };
+
+                /**
+                 * Verifies a Room message.
+                 * @function verify
+                 * @memberof vacuum.v1.Rooms.Room
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                Room.verify = function (message, _depth) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (_depth === $undefined)
+                        _depth = 0;
+                    if (_depth > $util.recursionLimit)
+                        return "max depth exceeded";
+                    if (message.name != null && $Object.hasOwnProperty.call(message, "name"))
+                        if (!$util.isString(message.name))
+                            return "name: string expected";
+                    if (message.pointsCm != null && $Object.hasOwnProperty.call(message, "pointsCm")) {
+                        if (!$Array.isArray(message.pointsCm))
+                            return "pointsCm: array expected";
+                        for (var i = 0; i < message.pointsCm.length; ++i)
+                            if (!$util.isInteger(message.pointsCm[i]))
+                                return "pointsCm: integer[] expected";
+                    }
+                    if (message.xCm != null && $Object.hasOwnProperty.call(message, "xCm"))
+                        if (!$util.isInteger(message.xCm))
+                            return "xCm: integer expected";
+                    if (message.yCm != null && $Object.hasOwnProperty.call(message, "yCm"))
+                        if (!$util.isInteger(message.yCm))
+                            return "yCm: integer expected";
+                    if (message.area != null && $Object.hasOwnProperty.call(message, "area"))
+                        if (typeof message.area !== "number")
+                            return "area: number expected";
+                    return null;
+                };
+
+                /**
+                 * Creates a Room message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof vacuum.v1.Rooms.Room
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {vacuum.v1.Rooms.Room} Room
+                 */
+                Room.fromObject = function (object, _depth) {
+                    if (object instanceof $root.vacuum.v1.Rooms.Room)
+                        return object;
+                    if (!$util.isObject(object))
+                        throw $TypeError(".vacuum.v1.Rooms.Room: object expected");
+                    if (_depth === $undefined)
+                        _depth = 0;
+                    if (_depth > $util.recursionLimit)
+                        throw $Error("max depth exceeded");
+                    var message = new $root.vacuum.v1.Rooms.Room();
+                    if (object.name != null)
+                        if (typeof object.name !== "string" || object.name.length)
+                            message.name = $String(object.name);
+                    if (object.pointsCm) {
+                        if (!$Array.isArray(object.pointsCm))
+                            throw $TypeError(".vacuum.v1.Rooms.Room.pointsCm: array expected");
+                        message.pointsCm = $Array(object.pointsCm.length);
+                        for (var i = 0; i < object.pointsCm.length; ++i)
+                            message.pointsCm[i] = object.pointsCm[i] | 0;
+                    }
+                    if (object.xCm != null)
+                        if ($Number(object.xCm) !== 0)
+                            message.xCm = object.xCm | 0;
+                    if (object.yCm != null)
+                        if ($Number(object.yCm) !== 0)
+                            message.yCm = object.yCm | 0;
+                    if (object.area != null)
+                        if (!$Object.is($Number(object.area), 0))
+                            message.area = $Number(object.area);
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from a Room message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof vacuum.v1.Rooms.Room
+                 * @static
+                 * @param {vacuum.v1.Rooms.Room} message Room
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                Room.toObject = function (message, options, _depth) {
+                    if (!options)
+                        options = {};
+                    if (_depth === $undefined)
+                        _depth = 0;
+                    if (_depth > $util.recursionLimit)
+                        throw $Error("max depth exceeded");
+                    var object = {};
+                    if (options.arrays || options.defaults)
+                        object.pointsCm = [];
+                    if (options.defaults) {
+                        object.name = "";
+                        object.xCm = 0;
+                        object.yCm = 0;
+                        object.area = 0;
+                    }
+                    if (message.name != null && $Object.hasOwnProperty.call(message, "name"))
+                        object.name = message.name;
+                    if (message.pointsCm && message.pointsCm.length) {
+                        object.pointsCm = $Array(message.pointsCm.length);
+                        for (var j = 0; j < message.pointsCm.length; ++j)
+                            object.pointsCm[j] = message.pointsCm[j];
+                    }
+                    if (message.xCm != null && $Object.hasOwnProperty.call(message, "xCm"))
+                        object.xCm = message.xCm;
+                    if (message.yCm != null && $Object.hasOwnProperty.call(message, "yCm"))
+                        object.yCm = message.yCm;
+                    if (message.area != null && $Object.hasOwnProperty.call(message, "area"))
+                        object.area = options.json && !$isFinite(message.area) ? $String(message.area) : message.area;
+                    return object;
+                };
+
+                /**
+                 * Converts this Room to JSON.
+                 * @function toJSON
+                 * @memberof vacuum.v1.Rooms.Room
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                Room.prototype.toJSON = function() {
+                    return Room.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                return Room;
+            })();
+
+            return Rooms;
+        })();
+
+        v1.AssistantStatus = (function() {
+
+            /**
+             * Properties of an AssistantStatus.
+             * @typedef {Object} vacuum.v1.AssistantStatus.$Properties
+             * @property {boolean|null} [busy] AssistantStatus busy
+             * @property {string|null} [conversation] AssistantStatus conversation
+             * @property {string|null} [doing] AssistantStatus doing
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+
+            /**
+             * Properties of an AssistantStatus.
+             * @memberof vacuum.v1
+             * @interface IAssistantStatus
+             * @augments vacuum.v1.AssistantStatus.$Properties
+             * @deprecated Use vacuum.v1.AssistantStatus.$Properties instead.
+             */
+
+            /**
+             * Shape of an AssistantStatus.
+             * @typedef {vacuum.v1.AssistantStatus.$Properties} vacuum.v1.AssistantStatus.$Shape
+             */
+
+            /**
+             * Constructs a new AssistantStatus.
+             * @memberof vacuum.v1
+             * @classdesc Represents an AssistantStatus.
+             * @constructor
+             * @param {vacuum.v1.AssistantStatus.$Properties=} [properties] Properties to set
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+            var AssistantStatus = function (properties) {
+                if (properties)
+                    for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                            this[keys[i]] = properties[keys[i]];
+            };
+
+            /**
+             * AssistantStatus busy.
+             * @member {boolean} busy
+             * @memberof vacuum.v1.AssistantStatus
+             * @instance
+             */
+            AssistantStatus.prototype.busy = false;
+
+            /**
+             * AssistantStatus conversation.
+             * @member {string} conversation
+             * @memberof vacuum.v1.AssistantStatus
+             * @instance
+             */
+            AssistantStatus.prototype.conversation = "";
+
+            /**
+             * AssistantStatus doing.
+             * @member {string} doing
+             * @memberof vacuum.v1.AssistantStatus
+             * @instance
+             */
+            AssistantStatus.prototype.doing = "";
+
+            /**
+             * Creates a new AssistantStatus instance using the specified properties.
+             * @function create
+             * @memberof vacuum.v1.AssistantStatus
+             * @static
+             * @param {vacuum.v1.AssistantStatus.$Properties=} [properties] Properties to set
+             * @returns {vacuum.v1.AssistantStatus} AssistantStatus instance
+             * @type {{
+             *   (properties: vacuum.v1.AssistantStatus.$Shape): vacuum.v1.AssistantStatus & vacuum.v1.AssistantStatus.$Shape;
+             *   (properties?: vacuum.v1.AssistantStatus.$Properties): vacuum.v1.AssistantStatus;
+             * }}
+             */
+            AssistantStatus.create = function(properties) {
+                return new AssistantStatus(properties);
+            };
+
+            /**
+             * Encodes the specified AssistantStatus message. Does not implicitly {@link vacuum.v1.AssistantStatus.verify|verify} messages.
+             * @function encode
+             * @memberof vacuum.v1.AssistantStatus
+             * @static
+             * @param {vacuum.v1.AssistantStatus.$Properties} message AssistantStatus message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            AssistantStatus.encode = function (message, writer, _depth) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                if (message.busy != null && $Object.hasOwnProperty.call(message, "busy") && message.busy !== false)
+                    writer.uint32(/* id 1, wireType 0 =*/8).bool(message.busy);
+                if (message.conversation != null && $Object.hasOwnProperty.call(message, "conversation") && message.conversation !== "")
+                    writer.uint32(/* id 2, wireType 2 =*/18).string(message.conversation);
+                if (message.doing != null && $Object.hasOwnProperty.call(message, "doing") && message.doing !== "")
+                    writer.uint32(/* id 3, wireType 2 =*/26).string(message.doing);
+                if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
+                    for (var i = 0; i < message.$unknowns.length; ++i)
+                        writer.raw(message.$unknowns[i]);
+                return writer;
+            };
+
+            /**
+             * Decodes an AssistantStatus message from the specified reader or buffer.
+             * @function decode
+             * @memberof vacuum.v1.AssistantStatus
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {vacuum.v1.AssistantStatus & vacuum.v1.AssistantStatus.$Shape} AssistantStatus
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            AssistantStatus.decode = function (reader, length, _end, _depth, _target) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $Reader.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var end, message, value;
+                if (length === $undefined)
+                    end = reader.len;
+                else {
+                    end = reader.pos + length;
+                    if (end > reader.len)
+                        throw $RangeError("index out of range");
+                    length = reader.len;
+                    reader.len = end;
+                }
+                message = _target || new $root.vacuum.v1.AssistantStatus();
+                while (reader.pos < end) {
+                    var start = reader.pos;
+                    var tag = reader.tag();
+                    if (tag === _end) {
+                        _end = $undefined;
+                        break;
+                    }
+                    var wireType = tag & 7;
+                    switch (tag >>>= 3) {
+                    case 1: {
+                            if (wireType !== 0)
+                                break;
+                            if (value = reader.bool())
+                                message.busy = value;
+                            else
+                                delete message.busy;
+                            continue;
+                        }
+                    case 2: {
+                            if (wireType !== 2)
+                                break;
+                            if ((value = reader.stringVerify()).length)
+                                message.conversation = value;
+                            else
+                                delete message.conversation;
+                            continue;
+                        }
+                    case 3: {
+                            if (wireType !== 2)
+                                break;
+                            if ((value = reader.stringVerify()).length)
+                                message.doing = value;
+                            else
+                                delete message.doing;
+                            continue;
+                        }
+                    }
+                    reader.skipType(wireType, _depth, tag);
+                    if (!reader.discardUnknown) {
+                        $util.makeProp(message, "$unknowns", false);
+                        (message.$unknowns || (message.$unknowns = [])).push(reader.raw(start, reader.pos));
+                    }
+                }
+                if (length !== $undefined) {
+                    if (reader.pos !== end)
+                        throw $RangeError("index out of range");
+                    reader.len = length;
+                }
+                if (_end !== $undefined)
+                    throw $Error("missing end group");
+                return message;
+            };
+
+            /**
+             * Verifies an AssistantStatus message.
+             * @function verify
+             * @memberof vacuum.v1.AssistantStatus
+             * @static
+             * @param {Object.<string,*>} message Plain object to verify
+             * @returns {string|null} `null` if valid, otherwise the reason why it is not
+             */
+            AssistantStatus.verify = function (message, _depth) {
+                if (typeof message !== "object" || message === null)
+                    return "object expected";
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    return "max depth exceeded";
+                if (message.busy != null && $Object.hasOwnProperty.call(message, "busy"))
+                    if (typeof message.busy !== "boolean")
+                        return "busy: boolean expected";
+                if (message.conversation != null && $Object.hasOwnProperty.call(message, "conversation"))
+                    if (!$util.isString(message.conversation))
+                        return "conversation: string expected";
+                if (message.doing != null && $Object.hasOwnProperty.call(message, "doing"))
+                    if (!$util.isString(message.doing))
+                        return "doing: string expected";
+                return null;
+            };
+
+            /**
+             * Creates an AssistantStatus message from a plain object. Also converts values to their respective internal types.
+             * @function fromObject
+             * @memberof vacuum.v1.AssistantStatus
+             * @static
+             * @param {Object.<string,*>} object Plain object
+             * @returns {vacuum.v1.AssistantStatus} AssistantStatus
+             */
+            AssistantStatus.fromObject = function (object, _depth) {
+                if (object instanceof $root.vacuum.v1.AssistantStatus)
+                    return object;
+                if (!$util.isObject(object))
+                    throw $TypeError(".vacuum.v1.AssistantStatus: object expected");
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var message = new $root.vacuum.v1.AssistantStatus();
+                if (object.busy != null)
+                    if (object.busy)
+                        message.busy = $Boolean(object.busy);
+                if (object.conversation != null)
+                    if (typeof object.conversation !== "string" || object.conversation.length)
+                        message.conversation = $String(object.conversation);
+                if (object.doing != null)
+                    if (typeof object.doing !== "string" || object.doing.length)
+                        message.doing = $String(object.doing);
+                return message;
+            };
+
+            /**
+             * Creates a plain object from an AssistantStatus message. Also converts values to other types if specified.
+             * @function toObject
+             * @memberof vacuum.v1.AssistantStatus
+             * @static
+             * @param {vacuum.v1.AssistantStatus} message AssistantStatus
+             * @param {$protobuf.IConversionOptions} [options] Conversion options
+             * @returns {Object.<string,*>} Plain object
+             */
+            AssistantStatus.toObject = function (message, options, _depth) {
+                if (!options)
+                    options = {};
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var object = {};
+                if (options.defaults) {
+                    object.busy = false;
+                    object.conversation = "";
+                    object.doing = "";
+                }
+                if (message.busy != null && $Object.hasOwnProperty.call(message, "busy"))
+                    object.busy = message.busy;
+                if (message.conversation != null && $Object.hasOwnProperty.call(message, "conversation"))
+                    object.conversation = message.conversation;
+                if (message.doing != null && $Object.hasOwnProperty.call(message, "doing"))
+                    object.doing = message.doing;
+                return object;
+            };
+
+            /**
+             * Converts this AssistantStatus to JSON.
+             * @function toJSON
+             * @memberof vacuum.v1.AssistantStatus
+             * @instance
+             * @returns {Object.<string,*>} JSON object
+             */
+            AssistantStatus.prototype.toJSON = function() {
+                return AssistantStatus.toObject(this, $protobuf.util.toJSONOptions);
+            };
+
+            return AssistantStatus;
+        })();
+
+        v1.AssistantAnswer = (function() {
+
+            /**
+             * Properties of an AssistantAnswer.
+             * @typedef {Object} vacuum.v1.AssistantAnswer.$Properties
+             * @property {string|null} [text] AssistantAnswer text
+             * @property {Array.<string>|null} [toolsUsed] AssistantAnswer toolsUsed
+             * @property {Uint8Array|null} [pictureJpeg] AssistantAnswer pictureJpeg
+             * @property {Array.<number>|null} [markCm] AssistantAnswer markCm
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+
+            /**
+             * Properties of an AssistantAnswer.
+             * @memberof vacuum.v1
+             * @interface IAssistantAnswer
+             * @augments vacuum.v1.AssistantAnswer.$Properties
+             * @deprecated Use vacuum.v1.AssistantAnswer.$Properties instead.
+             */
+
+            /**
+             * Shape of an AssistantAnswer.
+             * @typedef {vacuum.v1.AssistantAnswer.$Properties} vacuum.v1.AssistantAnswer.$Shape
+             */
+
+            /**
+             * Constructs a new AssistantAnswer.
+             * @memberof vacuum.v1
+             * @classdesc Represents an AssistantAnswer.
+             * @constructor
+             * @param {vacuum.v1.AssistantAnswer.$Properties=} [properties] Properties to set
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+            var AssistantAnswer = function (properties) {
+                this.toolsUsed = [];
+                this.markCm = [];
+                if (properties)
+                    for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                            this[keys[i]] = properties[keys[i]];
+            };
+
+            /**
+             * AssistantAnswer text.
+             * @member {string} text
+             * @memberof vacuum.v1.AssistantAnswer
+             * @instance
+             */
+            AssistantAnswer.prototype.text = "";
+
+            /**
+             * AssistantAnswer toolsUsed.
+             * @member {Array.<string>} toolsUsed
+             * @memberof vacuum.v1.AssistantAnswer
+             * @instance
+             */
+            AssistantAnswer.prototype.toolsUsed = $util.emptyArray;
+
+            /**
+             * AssistantAnswer pictureJpeg.
+             * @member {Uint8Array} pictureJpeg
+             * @memberof vacuum.v1.AssistantAnswer
+             * @instance
+             */
+            AssistantAnswer.prototype.pictureJpeg = $util.newBuffer([]);
+
+            /**
+             * AssistantAnswer markCm.
+             * @member {Array.<number>} markCm
+             * @memberof vacuum.v1.AssistantAnswer
+             * @instance
+             */
+            AssistantAnswer.prototype.markCm = $util.emptyArray;
+
+            /**
+             * Creates a new AssistantAnswer instance using the specified properties.
+             * @function create
+             * @memberof vacuum.v1.AssistantAnswer
+             * @static
+             * @param {vacuum.v1.AssistantAnswer.$Properties=} [properties] Properties to set
+             * @returns {vacuum.v1.AssistantAnswer} AssistantAnswer instance
+             * @type {{
+             *   (properties: vacuum.v1.AssistantAnswer.$Shape): vacuum.v1.AssistantAnswer & vacuum.v1.AssistantAnswer.$Shape;
+             *   (properties?: vacuum.v1.AssistantAnswer.$Properties): vacuum.v1.AssistantAnswer;
+             * }}
+             */
+            AssistantAnswer.create = function(properties) {
+                return new AssistantAnswer(properties);
+            };
+
+            /**
+             * Encodes the specified AssistantAnswer message. Does not implicitly {@link vacuum.v1.AssistantAnswer.verify|verify} messages.
+             * @function encode
+             * @memberof vacuum.v1.AssistantAnswer
+             * @static
+             * @param {vacuum.v1.AssistantAnswer.$Properties} message AssistantAnswer message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            AssistantAnswer.encode = function (message, writer, _depth) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                if (message.text != null && $Object.hasOwnProperty.call(message, "text") && message.text !== "")
+                    writer.uint32(/* id 1, wireType 2 =*/10).string(message.text);
+                if (message.toolsUsed != null && message.toolsUsed.length)
+                    for (var i = 0; i < message.toolsUsed.length; ++i)
+                        writer.uint32(/* id 2, wireType 2 =*/18).string(message.toolsUsed[i]);
+                if (message.pictureJpeg != null && $Object.hasOwnProperty.call(message, "pictureJpeg") && message.pictureJpeg.length)
+                    writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.pictureJpeg);
+                if (message.markCm != null && message.markCm.length)
+                    writer.uint32(/* id 4, wireType 2 =*/34).sint32s(message.markCm);
+                if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
+                    for (var i = 0; i < message.$unknowns.length; ++i)
+                        writer.raw(message.$unknowns[i]);
+                return writer;
+            };
+
+            /**
+             * Decodes an AssistantAnswer message from the specified reader or buffer.
+             * @function decode
+             * @memberof vacuum.v1.AssistantAnswer
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {vacuum.v1.AssistantAnswer & vacuum.v1.AssistantAnswer.$Shape} AssistantAnswer
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            AssistantAnswer.decode = function (reader, length, _end, _depth, _target) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $Reader.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var end, message, value;
+                if (length === $undefined)
+                    end = reader.len;
+                else {
+                    end = reader.pos + length;
+                    if (end > reader.len)
+                        throw $RangeError("index out of range");
+                    length = reader.len;
+                    reader.len = end;
+                }
+                message = _target || new $root.vacuum.v1.AssistantAnswer();
+                while (reader.pos < end) {
+                    var start = reader.pos;
+                    var tag = reader.tag();
+                    if (tag === _end) {
+                        _end = $undefined;
+                        break;
+                    }
+                    var wireType = tag & 7;
+                    switch (tag >>>= 3) {
+                    case 1: {
+                            if (wireType !== 2)
+                                break;
+                            if ((value = reader.stringVerify()).length)
+                                message.text = value;
+                            else
+                                delete message.text;
+                            continue;
+                        }
+                    case 2: {
+                            if (wireType !== 2)
+                                break;
+                            if (!(message.toolsUsed && message.toolsUsed.length))
+                                message.toolsUsed = [];
+                            message.toolsUsed.push(reader.stringVerify());
+                            continue;
+                        }
+                    case 3: {
+                            if (wireType !== 2)
+                                break;
+                            if ((value = reader.bytes()).length)
+                                message.pictureJpeg = value;
+                            else
+                                delete message.pictureJpeg;
+                            continue;
+                        }
+                    case 4: {
+                            if (wireType === 2) {
+                                if (!(message.markCm && message.markCm.length))
+                                    message.markCm = [];
+                                reader.sint32s(message.markCm);
+                                continue;
+                            }
+                            if (wireType !== 0)
+                                break;
+                            if (!(message.markCm && message.markCm.length))
+                                message.markCm = [];
+                            message.markCm.push(reader.sint32());
+                            continue;
+                        }
+                    }
+                    reader.skipType(wireType, _depth, tag);
+                    if (!reader.discardUnknown) {
+                        $util.makeProp(message, "$unknowns", false);
+                        (message.$unknowns || (message.$unknowns = [])).push(reader.raw(start, reader.pos));
+                    }
+                }
+                if (length !== $undefined) {
+                    if (reader.pos !== end)
+                        throw $RangeError("index out of range");
+                    reader.len = length;
+                }
+                if (_end !== $undefined)
+                    throw $Error("missing end group");
+                return message;
+            };
+
+            /**
+             * Verifies an AssistantAnswer message.
+             * @function verify
+             * @memberof vacuum.v1.AssistantAnswer
+             * @static
+             * @param {Object.<string,*>} message Plain object to verify
+             * @returns {string|null} `null` if valid, otherwise the reason why it is not
+             */
+            AssistantAnswer.verify = function (message, _depth) {
+                if (typeof message !== "object" || message === null)
+                    return "object expected";
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    return "max depth exceeded";
+                if (message.text != null && $Object.hasOwnProperty.call(message, "text"))
+                    if (!$util.isString(message.text))
+                        return "text: string expected";
+                if (message.toolsUsed != null && $Object.hasOwnProperty.call(message, "toolsUsed")) {
+                    if (!$Array.isArray(message.toolsUsed))
+                        return "toolsUsed: array expected";
+                    for (var i = 0; i < message.toolsUsed.length; ++i)
+                        if (!$util.isString(message.toolsUsed[i]))
+                            return "toolsUsed: string[] expected";
+                }
+                if (message.pictureJpeg != null && $Object.hasOwnProperty.call(message, "pictureJpeg"))
+                    if (!(message.pictureJpeg && typeof message.pictureJpeg.length === "number" || $util.isString(message.pictureJpeg)))
+                        return "pictureJpeg: buffer expected";
+                if (message.markCm != null && $Object.hasOwnProperty.call(message, "markCm")) {
+                    if (!$Array.isArray(message.markCm))
+                        return "markCm: array expected";
+                    for (var i = 0; i < message.markCm.length; ++i)
+                        if (!$util.isInteger(message.markCm[i]))
+                            return "markCm: integer[] expected";
+                }
+                return null;
+            };
+
+            /**
+             * Creates an AssistantAnswer message from a plain object. Also converts values to their respective internal types.
+             * @function fromObject
+             * @memberof vacuum.v1.AssistantAnswer
+             * @static
+             * @param {Object.<string,*>} object Plain object
+             * @returns {vacuum.v1.AssistantAnswer} AssistantAnswer
+             */
+            AssistantAnswer.fromObject = function (object, _depth) {
+                if (object instanceof $root.vacuum.v1.AssistantAnswer)
+                    return object;
+                if (!$util.isObject(object))
+                    throw $TypeError(".vacuum.v1.AssistantAnswer: object expected");
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var message = new $root.vacuum.v1.AssistantAnswer();
+                if (object.text != null)
+                    if (typeof object.text !== "string" || object.text.length)
+                        message.text = $String(object.text);
+                if (object.toolsUsed) {
+                    if (!$Array.isArray(object.toolsUsed))
+                        throw $TypeError(".vacuum.v1.AssistantAnswer.toolsUsed: array expected");
+                    message.toolsUsed = $Array(object.toolsUsed.length);
+                    for (var i = 0; i < object.toolsUsed.length; ++i)
+                        message.toolsUsed[i] = $String(object.toolsUsed[i]);
+                }
+                if (object.pictureJpeg != null)
+                    if (object.pictureJpeg.length)
+                        if (typeof object.pictureJpeg === "string")
+                            $util.base64.decode(object.pictureJpeg, message.pictureJpeg = $util.newBuffer($util.base64.length(object.pictureJpeg)), 0);
+                        else if (object.pictureJpeg.length >= 0)
+                            message.pictureJpeg = object.pictureJpeg;
+                if (object.markCm) {
+                    if (!$Array.isArray(object.markCm))
+                        throw $TypeError(".vacuum.v1.AssistantAnswer.markCm: array expected");
+                    message.markCm = $Array(object.markCm.length);
+                    for (var i = 0; i < object.markCm.length; ++i)
+                        message.markCm[i] = object.markCm[i] | 0;
+                }
+                return message;
+            };
+
+            /**
+             * Creates a plain object from an AssistantAnswer message. Also converts values to other types if specified.
+             * @function toObject
+             * @memberof vacuum.v1.AssistantAnswer
+             * @static
+             * @param {vacuum.v1.AssistantAnswer} message AssistantAnswer
+             * @param {$protobuf.IConversionOptions} [options] Conversion options
+             * @returns {Object.<string,*>} Plain object
+             */
+            AssistantAnswer.toObject = function (message, options, _depth) {
+                if (!options)
+                    options = {};
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var object = {};
+                if (options.arrays || options.defaults) {
+                    object.toolsUsed = [];
+                    object.markCm = [];
+                }
+                if (options.defaults) {
+                    object.text = "";
+                    if (options.bytes === $String)
+                        object.pictureJpeg = "";
+                    else {
+                        object.pictureJpeg = [];
+                        if (options.bytes !== $Array)
+                            object.pictureJpeg = $util.newBuffer(object.pictureJpeg);
+                    }
+                }
+                if (message.text != null && $Object.hasOwnProperty.call(message, "text"))
+                    object.text = message.text;
+                if (message.toolsUsed && message.toolsUsed.length) {
+                    object.toolsUsed = $Array(message.toolsUsed.length);
+                    for (var j = 0; j < message.toolsUsed.length; ++j)
+                        object.toolsUsed[j] = message.toolsUsed[j];
+                }
+                if (message.pictureJpeg != null && $Object.hasOwnProperty.call(message, "pictureJpeg"))
+                    object.pictureJpeg = options.bytes === $String ? $util.base64.encode(message.pictureJpeg, 0, message.pictureJpeg.length) : options.bytes === $Array ? $Array.prototype.slice.call(message.pictureJpeg) : message.pictureJpeg;
+                if (message.markCm && message.markCm.length) {
+                    object.markCm = $Array(message.markCm.length);
+                    for (var j = 0; j < message.markCm.length; ++j)
+                        object.markCm[j] = message.markCm[j];
+                }
+                return object;
+            };
+
+            /**
+             * Converts this AssistantAnswer to JSON.
+             * @function toJSON
+             * @memberof vacuum.v1.AssistantAnswer
+             * @instance
+             * @returns {Object.<string,*>} JSON object
+             */
+            AssistantAnswer.prototype.toJSON = function() {
+                return AssistantAnswer.toObject(this, $protobuf.util.toJSONOptions);
+            };
+
+            return AssistantAnswer;
+        })();
+
         v1.RequestId = (function() {
 
             /**
@@ -4440,6 +6568,1380 @@ $root.vacuum = (function() {
             return SetNoGoZones;
         })();
 
+        v1.SetRobotSettings = (function() {
+
+            /**
+             * Properties of a SetRobotSettings.
+             * @typedef {Object} vacuum.v1.SetRobotSettings.$Properties
+             * @property {number|null} [requestId] SetRobotSettings requestId
+             * @property {vacuum.v1.RobotSettings.$Properties|null} [settings] SetRobotSettings settings
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+
+            /**
+             * Properties of a SetRobotSettings.
+             * @memberof vacuum.v1
+             * @interface ISetRobotSettings
+             * @augments vacuum.v1.SetRobotSettings.$Properties
+             * @deprecated Use vacuum.v1.SetRobotSettings.$Properties instead.
+             */
+
+            /**
+             * Shape of a SetRobotSettings.
+             * @typedef {vacuum.v1.SetRobotSettings.$Properties} vacuum.v1.SetRobotSettings.$Shape
+             */
+
+            /**
+             * Constructs a new SetRobotSettings.
+             * @memberof vacuum.v1
+             * @classdesc Represents a SetRobotSettings.
+             * @constructor
+             * @param {vacuum.v1.SetRobotSettings.$Properties=} [properties] Properties to set
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+            var SetRobotSettings = function (properties) {
+                if (properties)
+                    for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                            this[keys[i]] = properties[keys[i]];
+            };
+
+            /**
+             * SetRobotSettings requestId.
+             * @member {number} requestId
+             * @memberof vacuum.v1.SetRobotSettings
+             * @instance
+             */
+            SetRobotSettings.prototype.requestId = 0;
+
+            /**
+             * SetRobotSettings settings.
+             * @member {vacuum.v1.RobotSettings.$Properties|null|undefined} settings
+             * @memberof vacuum.v1.SetRobotSettings
+             * @instance
+             */
+            SetRobotSettings.prototype.settings = null;
+
+            /**
+             * Creates a new SetRobotSettings instance using the specified properties.
+             * @function create
+             * @memberof vacuum.v1.SetRobotSettings
+             * @static
+             * @param {vacuum.v1.SetRobotSettings.$Properties=} [properties] Properties to set
+             * @returns {vacuum.v1.SetRobotSettings} SetRobotSettings instance
+             * @type {{
+             *   (properties: vacuum.v1.SetRobotSettings.$Shape): vacuum.v1.SetRobotSettings & vacuum.v1.SetRobotSettings.$Shape;
+             *   (properties?: vacuum.v1.SetRobotSettings.$Properties): vacuum.v1.SetRobotSettings;
+             * }}
+             */
+            SetRobotSettings.create = function(properties) {
+                return new SetRobotSettings(properties);
+            };
+
+            /**
+             * Encodes the specified SetRobotSettings message. Does not implicitly {@link vacuum.v1.SetRobotSettings.verify|verify} messages.
+             * @function encode
+             * @memberof vacuum.v1.SetRobotSettings
+             * @static
+             * @param {vacuum.v1.SetRobotSettings.$Properties} message SetRobotSettings message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            SetRobotSettings.encode = function (message, writer, _depth) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId") && message.requestId !== 0)
+                    writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.requestId);
+                if (message.settings != null && $Object.hasOwnProperty.call(message, "settings"))
+                    $root.vacuum.v1.RobotSettings.encode(message.settings, writer.uint32(/* id 2, wireType 2 =*/18).fork(), _depth + 1).ldelim();
+                if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
+                    for (var i = 0; i < message.$unknowns.length; ++i)
+                        writer.raw(message.$unknowns[i]);
+                return writer;
+            };
+
+            /**
+             * Decodes a SetRobotSettings message from the specified reader or buffer.
+             * @function decode
+             * @memberof vacuum.v1.SetRobotSettings
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {vacuum.v1.SetRobotSettings & vacuum.v1.SetRobotSettings.$Shape} SetRobotSettings
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            SetRobotSettings.decode = function (reader, length, _end, _depth, _target) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $Reader.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var end, message, value;
+                if (length === $undefined)
+                    end = reader.len;
+                else {
+                    end = reader.pos + length;
+                    if (end > reader.len)
+                        throw $RangeError("index out of range");
+                    length = reader.len;
+                    reader.len = end;
+                }
+                message = _target || new $root.vacuum.v1.SetRobotSettings();
+                while (reader.pos < end) {
+                    var start = reader.pos;
+                    var tag = reader.tag();
+                    if (tag === _end) {
+                        _end = $undefined;
+                        break;
+                    }
+                    var wireType = tag & 7;
+                    switch (tag >>>= 3) {
+                    case 1: {
+                            if (wireType !== 0)
+                                break;
+                            if (value = reader.uint32())
+                                message.requestId = value;
+                            else
+                                delete message.requestId;
+                            continue;
+                        }
+                    case 2: {
+                            if (wireType !== 2)
+                                break;
+                            message.settings = $root.vacuum.v1.RobotSettings.decode(reader, reader.size(), $undefined, _depth + 1, message.settings);
+                            continue;
+                        }
+                    }
+                    reader.skipType(wireType, _depth, tag);
+                    if (!reader.discardUnknown) {
+                        $util.makeProp(message, "$unknowns", false);
+                        (message.$unknowns || (message.$unknowns = [])).push(reader.raw(start, reader.pos));
+                    }
+                }
+                if (length !== $undefined) {
+                    if (reader.pos !== end)
+                        throw $RangeError("index out of range");
+                    reader.len = length;
+                }
+                if (_end !== $undefined)
+                    throw $Error("missing end group");
+                return message;
+            };
+
+            /**
+             * Verifies a SetRobotSettings message.
+             * @function verify
+             * @memberof vacuum.v1.SetRobotSettings
+             * @static
+             * @param {Object.<string,*>} message Plain object to verify
+             * @returns {string|null} `null` if valid, otherwise the reason why it is not
+             */
+            SetRobotSettings.verify = function (message, _depth) {
+                if (typeof message !== "object" || message === null)
+                    return "object expected";
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    return "max depth exceeded";
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId"))
+                    if (!$util.isInteger(message.requestId))
+                        return "requestId: integer expected";
+                if (message.settings != null && $Object.hasOwnProperty.call(message, "settings")) {
+                    var error = $root.vacuum.v1.RobotSettings.verify(message.settings, _depth + 1);
+                    if (error)
+                        return "settings." + error;
+                }
+                return null;
+            };
+
+            /**
+             * Creates a SetRobotSettings message from a plain object. Also converts values to their respective internal types.
+             * @function fromObject
+             * @memberof vacuum.v1.SetRobotSettings
+             * @static
+             * @param {Object.<string,*>} object Plain object
+             * @returns {vacuum.v1.SetRobotSettings} SetRobotSettings
+             */
+            SetRobotSettings.fromObject = function (object, _depth) {
+                if (object instanceof $root.vacuum.v1.SetRobotSettings)
+                    return object;
+                if (!$util.isObject(object))
+                    throw $TypeError(".vacuum.v1.SetRobotSettings: object expected");
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var message = new $root.vacuum.v1.SetRobotSettings();
+                if (object.requestId != null)
+                    if ($Number(object.requestId) !== 0)
+                        message.requestId = object.requestId >>> 0;
+                if (object.settings != null) {
+                    if (!$util.isObject(object.settings))
+                        throw $TypeError(".vacuum.v1.SetRobotSettings.settings: object expected");
+                    message.settings = $root.vacuum.v1.RobotSettings.fromObject(object.settings, _depth + 1);
+                }
+                return message;
+            };
+
+            /**
+             * Creates a plain object from a SetRobotSettings message. Also converts values to other types if specified.
+             * @function toObject
+             * @memberof vacuum.v1.SetRobotSettings
+             * @static
+             * @param {vacuum.v1.SetRobotSettings} message SetRobotSettings
+             * @param {$protobuf.IConversionOptions} [options] Conversion options
+             * @returns {Object.<string,*>} Plain object
+             */
+            SetRobotSettings.toObject = function (message, options, _depth) {
+                if (!options)
+                    options = {};
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var object = {};
+                if (options.defaults) {
+                    object.requestId = 0;
+                    object.settings = null;
+                }
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId"))
+                    object.requestId = message.requestId;
+                if (message.settings != null && $Object.hasOwnProperty.call(message, "settings"))
+                    object.settings = $root.vacuum.v1.RobotSettings.toObject(message.settings, options, _depth + 1);
+                return object;
+            };
+
+            /**
+             * Converts this SetRobotSettings to JSON.
+             * @function toJSON
+             * @memberof vacuum.v1.SetRobotSettings
+             * @instance
+             * @returns {Object.<string,*>} JSON object
+             */
+            SetRobotSettings.prototype.toJSON = function() {
+                return SetRobotSettings.toObject(this, $protobuf.util.toJSONOptions);
+            };
+
+            return SetRobotSettings;
+        })();
+
+        v1.FindRooms = (function() {
+
+            /**
+             * Properties of a FindRooms.
+             * @typedef {Object} vacuum.v1.FindRooms.$Properties
+             * @property {number|null} [requestId] FindRooms requestId
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+
+            /**
+             * Properties of a FindRooms.
+             * @memberof vacuum.v1
+             * @interface IFindRooms
+             * @augments vacuum.v1.FindRooms.$Properties
+             * @deprecated Use vacuum.v1.FindRooms.$Properties instead.
+             */
+
+            /**
+             * Shape of a FindRooms.
+             * @typedef {vacuum.v1.FindRooms.$Properties} vacuum.v1.FindRooms.$Shape
+             */
+
+            /**
+             * Constructs a new FindRooms.
+             * @memberof vacuum.v1
+             * @classdesc Represents a FindRooms.
+             * @constructor
+             * @param {vacuum.v1.FindRooms.$Properties=} [properties] Properties to set
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+            var FindRooms = function (properties) {
+                if (properties)
+                    for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                            this[keys[i]] = properties[keys[i]];
+            };
+
+            /**
+             * FindRooms requestId.
+             * @member {number} requestId
+             * @memberof vacuum.v1.FindRooms
+             * @instance
+             */
+            FindRooms.prototype.requestId = 0;
+
+            /**
+             * Creates a new FindRooms instance using the specified properties.
+             * @function create
+             * @memberof vacuum.v1.FindRooms
+             * @static
+             * @param {vacuum.v1.FindRooms.$Properties=} [properties] Properties to set
+             * @returns {vacuum.v1.FindRooms} FindRooms instance
+             * @type {{
+             *   (properties: vacuum.v1.FindRooms.$Shape): vacuum.v1.FindRooms & vacuum.v1.FindRooms.$Shape;
+             *   (properties?: vacuum.v1.FindRooms.$Properties): vacuum.v1.FindRooms;
+             * }}
+             */
+            FindRooms.create = function(properties) {
+                return new FindRooms(properties);
+            };
+
+            /**
+             * Encodes the specified FindRooms message. Does not implicitly {@link vacuum.v1.FindRooms.verify|verify} messages.
+             * @function encode
+             * @memberof vacuum.v1.FindRooms
+             * @static
+             * @param {vacuum.v1.FindRooms.$Properties} message FindRooms message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            FindRooms.encode = function (message, writer, _depth) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId") && message.requestId !== 0)
+                    writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.requestId);
+                if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
+                    for (var i = 0; i < message.$unknowns.length; ++i)
+                        writer.raw(message.$unknowns[i]);
+                return writer;
+            };
+
+            /**
+             * Decodes a FindRooms message from the specified reader or buffer.
+             * @function decode
+             * @memberof vacuum.v1.FindRooms
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {vacuum.v1.FindRooms & vacuum.v1.FindRooms.$Shape} FindRooms
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            FindRooms.decode = function (reader, length, _end, _depth, _target) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $Reader.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var end, message, value;
+                if (length === $undefined)
+                    end = reader.len;
+                else {
+                    end = reader.pos + length;
+                    if (end > reader.len)
+                        throw $RangeError("index out of range");
+                    length = reader.len;
+                    reader.len = end;
+                }
+                message = _target || new $root.vacuum.v1.FindRooms();
+                while (reader.pos < end) {
+                    var start = reader.pos;
+                    var tag = reader.tag();
+                    if (tag === _end) {
+                        _end = $undefined;
+                        break;
+                    }
+                    var wireType = tag & 7;
+                    switch (tag >>>= 3) {
+                    case 1: {
+                            if (wireType !== 0)
+                                break;
+                            if (value = reader.uint32())
+                                message.requestId = value;
+                            else
+                                delete message.requestId;
+                            continue;
+                        }
+                    }
+                    reader.skipType(wireType, _depth, tag);
+                    if (!reader.discardUnknown) {
+                        $util.makeProp(message, "$unknowns", false);
+                        (message.$unknowns || (message.$unknowns = [])).push(reader.raw(start, reader.pos));
+                    }
+                }
+                if (length !== $undefined) {
+                    if (reader.pos !== end)
+                        throw $RangeError("index out of range");
+                    reader.len = length;
+                }
+                if (_end !== $undefined)
+                    throw $Error("missing end group");
+                return message;
+            };
+
+            /**
+             * Verifies a FindRooms message.
+             * @function verify
+             * @memberof vacuum.v1.FindRooms
+             * @static
+             * @param {Object.<string,*>} message Plain object to verify
+             * @returns {string|null} `null` if valid, otherwise the reason why it is not
+             */
+            FindRooms.verify = function (message, _depth) {
+                if (typeof message !== "object" || message === null)
+                    return "object expected";
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    return "max depth exceeded";
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId"))
+                    if (!$util.isInteger(message.requestId))
+                        return "requestId: integer expected";
+                return null;
+            };
+
+            /**
+             * Creates a FindRooms message from a plain object. Also converts values to their respective internal types.
+             * @function fromObject
+             * @memberof vacuum.v1.FindRooms
+             * @static
+             * @param {Object.<string,*>} object Plain object
+             * @returns {vacuum.v1.FindRooms} FindRooms
+             */
+            FindRooms.fromObject = function (object, _depth) {
+                if (object instanceof $root.vacuum.v1.FindRooms)
+                    return object;
+                if (!$util.isObject(object))
+                    throw $TypeError(".vacuum.v1.FindRooms: object expected");
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var message = new $root.vacuum.v1.FindRooms();
+                if (object.requestId != null)
+                    if ($Number(object.requestId) !== 0)
+                        message.requestId = object.requestId >>> 0;
+                return message;
+            };
+
+            /**
+             * Creates a plain object from a FindRooms message. Also converts values to other types if specified.
+             * @function toObject
+             * @memberof vacuum.v1.FindRooms
+             * @static
+             * @param {vacuum.v1.FindRooms} message FindRooms
+             * @param {$protobuf.IConversionOptions} [options] Conversion options
+             * @returns {Object.<string,*>} Plain object
+             */
+            FindRooms.toObject = function (message, options, _depth) {
+                if (!options)
+                    options = {};
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var object = {};
+                if (options.defaults)
+                    object.requestId = 0;
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId"))
+                    object.requestId = message.requestId;
+                return object;
+            };
+
+            /**
+             * Converts this FindRooms to JSON.
+             * @function toJSON
+             * @memberof vacuum.v1.FindRooms
+             * @instance
+             * @returns {Object.<string,*>} JSON object
+             */
+            FindRooms.prototype.toJSON = function() {
+                return FindRooms.toObject(this, $protobuf.util.toJSONOptions);
+            };
+
+            return FindRooms;
+        })();
+
+        v1.SetRooms = (function() {
+
+            /**
+             * Properties of a SetRooms.
+             * @typedef {Object} vacuum.v1.SetRooms.$Properties
+             * @property {number|null} [requestId] SetRooms requestId
+             * @property {string|null} [mapName] SetRooms mapName
+             * @property {Array.<vacuum.v1.Rooms.Room.$Properties>|null} [rooms] SetRooms rooms
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+
+            /**
+             * Properties of a SetRooms.
+             * @memberof vacuum.v1
+             * @interface ISetRooms
+             * @augments vacuum.v1.SetRooms.$Properties
+             * @deprecated Use vacuum.v1.SetRooms.$Properties instead.
+             */
+
+            /**
+             * Shape of a SetRooms.
+             * @typedef {vacuum.v1.SetRooms.$Properties} vacuum.v1.SetRooms.$Shape
+             */
+
+            /**
+             * Constructs a new SetRooms.
+             * @memberof vacuum.v1
+             * @classdesc Represents a SetRooms.
+             * @constructor
+             * @param {vacuum.v1.SetRooms.$Properties=} [properties] Properties to set
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+            var SetRooms = function (properties) {
+                this.rooms = [];
+                if (properties)
+                    for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                            this[keys[i]] = properties[keys[i]];
+            };
+
+            /**
+             * SetRooms requestId.
+             * @member {number} requestId
+             * @memberof vacuum.v1.SetRooms
+             * @instance
+             */
+            SetRooms.prototype.requestId = 0;
+
+            /**
+             * SetRooms mapName.
+             * @member {string} mapName
+             * @memberof vacuum.v1.SetRooms
+             * @instance
+             */
+            SetRooms.prototype.mapName = "";
+
+            /**
+             * SetRooms rooms.
+             * @member {Array.<vacuum.v1.Rooms.Room.$Properties>} rooms
+             * @memberof vacuum.v1.SetRooms
+             * @instance
+             */
+            SetRooms.prototype.rooms = $util.emptyArray;
+
+            /**
+             * Creates a new SetRooms instance using the specified properties.
+             * @function create
+             * @memberof vacuum.v1.SetRooms
+             * @static
+             * @param {vacuum.v1.SetRooms.$Properties=} [properties] Properties to set
+             * @returns {vacuum.v1.SetRooms} SetRooms instance
+             * @type {{
+             *   (properties: vacuum.v1.SetRooms.$Shape): vacuum.v1.SetRooms & vacuum.v1.SetRooms.$Shape;
+             *   (properties?: vacuum.v1.SetRooms.$Properties): vacuum.v1.SetRooms;
+             * }}
+             */
+            SetRooms.create = function(properties) {
+                return new SetRooms(properties);
+            };
+
+            /**
+             * Encodes the specified SetRooms message. Does not implicitly {@link vacuum.v1.SetRooms.verify|verify} messages.
+             * @function encode
+             * @memberof vacuum.v1.SetRooms
+             * @static
+             * @param {vacuum.v1.SetRooms.$Properties} message SetRooms message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            SetRooms.encode = function (message, writer, _depth) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId") && message.requestId !== 0)
+                    writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.requestId);
+                if (message.mapName != null && $Object.hasOwnProperty.call(message, "mapName") && message.mapName !== "")
+                    writer.uint32(/* id 2, wireType 2 =*/18).string(message.mapName);
+                if (message.rooms != null && message.rooms.length)
+                    for (var i = 0; i < message.rooms.length; ++i)
+                        $root.vacuum.v1.Rooms.Room.encode(message.rooms[i], writer.uint32(/* id 3, wireType 2 =*/26).fork(), _depth + 1).ldelim();
+                if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
+                    for (var i = 0; i < message.$unknowns.length; ++i)
+                        writer.raw(message.$unknowns[i]);
+                return writer;
+            };
+
+            /**
+             * Decodes a SetRooms message from the specified reader or buffer.
+             * @function decode
+             * @memberof vacuum.v1.SetRooms
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {vacuum.v1.SetRooms & vacuum.v1.SetRooms.$Shape} SetRooms
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            SetRooms.decode = function (reader, length, _end, _depth, _target) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $Reader.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var end, message, value;
+                if (length === $undefined)
+                    end = reader.len;
+                else {
+                    end = reader.pos + length;
+                    if (end > reader.len)
+                        throw $RangeError("index out of range");
+                    length = reader.len;
+                    reader.len = end;
+                }
+                message = _target || new $root.vacuum.v1.SetRooms();
+                while (reader.pos < end) {
+                    var start = reader.pos;
+                    var tag = reader.tag();
+                    if (tag === _end) {
+                        _end = $undefined;
+                        break;
+                    }
+                    var wireType = tag & 7;
+                    switch (tag >>>= 3) {
+                    case 1: {
+                            if (wireType !== 0)
+                                break;
+                            if (value = reader.uint32())
+                                message.requestId = value;
+                            else
+                                delete message.requestId;
+                            continue;
+                        }
+                    case 2: {
+                            if (wireType !== 2)
+                                break;
+                            if ((value = reader.stringVerify()).length)
+                                message.mapName = value;
+                            else
+                                delete message.mapName;
+                            continue;
+                        }
+                    case 3: {
+                            if (wireType !== 2)
+                                break;
+                            if (!(message.rooms && message.rooms.length))
+                                message.rooms = [];
+                            message.rooms.push($root.vacuum.v1.Rooms.Room.decode(reader, reader.size(), $undefined, _depth + 1));
+                            continue;
+                        }
+                    }
+                    reader.skipType(wireType, _depth, tag);
+                    if (!reader.discardUnknown) {
+                        $util.makeProp(message, "$unknowns", false);
+                        (message.$unknowns || (message.$unknowns = [])).push(reader.raw(start, reader.pos));
+                    }
+                }
+                if (length !== $undefined) {
+                    if (reader.pos !== end)
+                        throw $RangeError("index out of range");
+                    reader.len = length;
+                }
+                if (_end !== $undefined)
+                    throw $Error("missing end group");
+                return message;
+            };
+
+            /**
+             * Verifies a SetRooms message.
+             * @function verify
+             * @memberof vacuum.v1.SetRooms
+             * @static
+             * @param {Object.<string,*>} message Plain object to verify
+             * @returns {string|null} `null` if valid, otherwise the reason why it is not
+             */
+            SetRooms.verify = function (message, _depth) {
+                if (typeof message !== "object" || message === null)
+                    return "object expected";
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    return "max depth exceeded";
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId"))
+                    if (!$util.isInteger(message.requestId))
+                        return "requestId: integer expected";
+                if (message.mapName != null && $Object.hasOwnProperty.call(message, "mapName"))
+                    if (!$util.isString(message.mapName))
+                        return "mapName: string expected";
+                if (message.rooms != null && $Object.hasOwnProperty.call(message, "rooms")) {
+                    if (!$Array.isArray(message.rooms))
+                        return "rooms: array expected";
+                    for (var i = 0; i < message.rooms.length; ++i) {
+                        var error = $root.vacuum.v1.Rooms.Room.verify(message.rooms[i], _depth + 1);
+                        if (error)
+                            return "rooms." + error;
+                    }
+                }
+                return null;
+            };
+
+            /**
+             * Creates a SetRooms message from a plain object. Also converts values to their respective internal types.
+             * @function fromObject
+             * @memberof vacuum.v1.SetRooms
+             * @static
+             * @param {Object.<string,*>} object Plain object
+             * @returns {vacuum.v1.SetRooms} SetRooms
+             */
+            SetRooms.fromObject = function (object, _depth) {
+                if (object instanceof $root.vacuum.v1.SetRooms)
+                    return object;
+                if (!$util.isObject(object))
+                    throw $TypeError(".vacuum.v1.SetRooms: object expected");
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var message = new $root.vacuum.v1.SetRooms();
+                if (object.requestId != null)
+                    if ($Number(object.requestId) !== 0)
+                        message.requestId = object.requestId >>> 0;
+                if (object.mapName != null)
+                    if (typeof object.mapName !== "string" || object.mapName.length)
+                        message.mapName = $String(object.mapName);
+                if (object.rooms) {
+                    if (!$Array.isArray(object.rooms))
+                        throw $TypeError(".vacuum.v1.SetRooms.rooms: array expected");
+                    message.rooms = $Array(object.rooms.length);
+                    for (var i = 0; i < object.rooms.length; ++i) {
+                        if (!$util.isObject(object.rooms[i]))
+                            throw $TypeError(".vacuum.v1.SetRooms.rooms: object expected");
+                        message.rooms[i] = $root.vacuum.v1.Rooms.Room.fromObject(object.rooms[i], _depth + 1);
+                    }
+                }
+                return message;
+            };
+
+            /**
+             * Creates a plain object from a SetRooms message. Also converts values to other types if specified.
+             * @function toObject
+             * @memberof vacuum.v1.SetRooms
+             * @static
+             * @param {vacuum.v1.SetRooms} message SetRooms
+             * @param {$protobuf.IConversionOptions} [options] Conversion options
+             * @returns {Object.<string,*>} Plain object
+             */
+            SetRooms.toObject = function (message, options, _depth) {
+                if (!options)
+                    options = {};
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var object = {};
+                if (options.arrays || options.defaults)
+                    object.rooms = [];
+                if (options.defaults) {
+                    object.requestId = 0;
+                    object.mapName = "";
+                }
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId"))
+                    object.requestId = message.requestId;
+                if (message.mapName != null && $Object.hasOwnProperty.call(message, "mapName"))
+                    object.mapName = message.mapName;
+                if (message.rooms && message.rooms.length) {
+                    object.rooms = $Array(message.rooms.length);
+                    for (var j = 0; j < message.rooms.length; ++j)
+                        object.rooms[j] = $root.vacuum.v1.Rooms.Room.toObject(message.rooms[j], options, _depth + 1);
+                }
+                return object;
+            };
+
+            /**
+             * Converts this SetRooms to JSON.
+             * @function toJSON
+             * @memberof vacuum.v1.SetRooms
+             * @instance
+             * @returns {Object.<string,*>} JSON object
+             */
+            SetRooms.prototype.toJSON = function() {
+                return SetRooms.toObject(this, $protobuf.util.toJSONOptions);
+            };
+
+            return SetRooms;
+        })();
+
+        v1.AskAssistant = (function() {
+
+            /**
+             * Properties of an AskAssistant.
+             * @typedef {Object} vacuum.v1.AskAssistant.$Properties
+             * @property {number|null} [requestId] AskAssistant requestId
+             * @property {string|null} [conversation] AskAssistant conversation
+             * @property {string|null} [text] AskAssistant text
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+
+            /**
+             * Properties of an AskAssistant.
+             * @memberof vacuum.v1
+             * @interface IAskAssistant
+             * @augments vacuum.v1.AskAssistant.$Properties
+             * @deprecated Use vacuum.v1.AskAssistant.$Properties instead.
+             */
+
+            /**
+             * Shape of an AskAssistant.
+             * @typedef {vacuum.v1.AskAssistant.$Properties} vacuum.v1.AskAssistant.$Shape
+             */
+
+            /**
+             * Constructs a new AskAssistant.
+             * @memberof vacuum.v1
+             * @classdesc Represents an AskAssistant.
+             * @constructor
+             * @param {vacuum.v1.AskAssistant.$Properties=} [properties] Properties to set
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+            var AskAssistant = function (properties) {
+                if (properties)
+                    for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                            this[keys[i]] = properties[keys[i]];
+            };
+
+            /**
+             * AskAssistant requestId.
+             * @member {number} requestId
+             * @memberof vacuum.v1.AskAssistant
+             * @instance
+             */
+            AskAssistant.prototype.requestId = 0;
+
+            /**
+             * AskAssistant conversation.
+             * @member {string} conversation
+             * @memberof vacuum.v1.AskAssistant
+             * @instance
+             */
+            AskAssistant.prototype.conversation = "";
+
+            /**
+             * AskAssistant text.
+             * @member {string} text
+             * @memberof vacuum.v1.AskAssistant
+             * @instance
+             */
+            AskAssistant.prototype.text = "";
+
+            /**
+             * Creates a new AskAssistant instance using the specified properties.
+             * @function create
+             * @memberof vacuum.v1.AskAssistant
+             * @static
+             * @param {vacuum.v1.AskAssistant.$Properties=} [properties] Properties to set
+             * @returns {vacuum.v1.AskAssistant} AskAssistant instance
+             * @type {{
+             *   (properties: vacuum.v1.AskAssistant.$Shape): vacuum.v1.AskAssistant & vacuum.v1.AskAssistant.$Shape;
+             *   (properties?: vacuum.v1.AskAssistant.$Properties): vacuum.v1.AskAssistant;
+             * }}
+             */
+            AskAssistant.create = function(properties) {
+                return new AskAssistant(properties);
+            };
+
+            /**
+             * Encodes the specified AskAssistant message. Does not implicitly {@link vacuum.v1.AskAssistant.verify|verify} messages.
+             * @function encode
+             * @memberof vacuum.v1.AskAssistant
+             * @static
+             * @param {vacuum.v1.AskAssistant.$Properties} message AskAssistant message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            AskAssistant.encode = function (message, writer, _depth) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId") && message.requestId !== 0)
+                    writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.requestId);
+                if (message.conversation != null && $Object.hasOwnProperty.call(message, "conversation") && message.conversation !== "")
+                    writer.uint32(/* id 2, wireType 2 =*/18).string(message.conversation);
+                if (message.text != null && $Object.hasOwnProperty.call(message, "text") && message.text !== "")
+                    writer.uint32(/* id 3, wireType 2 =*/26).string(message.text);
+                if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
+                    for (var i = 0; i < message.$unknowns.length; ++i)
+                        writer.raw(message.$unknowns[i]);
+                return writer;
+            };
+
+            /**
+             * Decodes an AskAssistant message from the specified reader or buffer.
+             * @function decode
+             * @memberof vacuum.v1.AskAssistant
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {vacuum.v1.AskAssistant & vacuum.v1.AskAssistant.$Shape} AskAssistant
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            AskAssistant.decode = function (reader, length, _end, _depth, _target) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $Reader.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var end, message, value;
+                if (length === $undefined)
+                    end = reader.len;
+                else {
+                    end = reader.pos + length;
+                    if (end > reader.len)
+                        throw $RangeError("index out of range");
+                    length = reader.len;
+                    reader.len = end;
+                }
+                message = _target || new $root.vacuum.v1.AskAssistant();
+                while (reader.pos < end) {
+                    var start = reader.pos;
+                    var tag = reader.tag();
+                    if (tag === _end) {
+                        _end = $undefined;
+                        break;
+                    }
+                    var wireType = tag & 7;
+                    switch (tag >>>= 3) {
+                    case 1: {
+                            if (wireType !== 0)
+                                break;
+                            if (value = reader.uint32())
+                                message.requestId = value;
+                            else
+                                delete message.requestId;
+                            continue;
+                        }
+                    case 2: {
+                            if (wireType !== 2)
+                                break;
+                            if ((value = reader.stringVerify()).length)
+                                message.conversation = value;
+                            else
+                                delete message.conversation;
+                            continue;
+                        }
+                    case 3: {
+                            if (wireType !== 2)
+                                break;
+                            if ((value = reader.stringVerify()).length)
+                                message.text = value;
+                            else
+                                delete message.text;
+                            continue;
+                        }
+                    }
+                    reader.skipType(wireType, _depth, tag);
+                    if (!reader.discardUnknown) {
+                        $util.makeProp(message, "$unknowns", false);
+                        (message.$unknowns || (message.$unknowns = [])).push(reader.raw(start, reader.pos));
+                    }
+                }
+                if (length !== $undefined) {
+                    if (reader.pos !== end)
+                        throw $RangeError("index out of range");
+                    reader.len = length;
+                }
+                if (_end !== $undefined)
+                    throw $Error("missing end group");
+                return message;
+            };
+
+            /**
+             * Verifies an AskAssistant message.
+             * @function verify
+             * @memberof vacuum.v1.AskAssistant
+             * @static
+             * @param {Object.<string,*>} message Plain object to verify
+             * @returns {string|null} `null` if valid, otherwise the reason why it is not
+             */
+            AskAssistant.verify = function (message, _depth) {
+                if (typeof message !== "object" || message === null)
+                    return "object expected";
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    return "max depth exceeded";
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId"))
+                    if (!$util.isInteger(message.requestId))
+                        return "requestId: integer expected";
+                if (message.conversation != null && $Object.hasOwnProperty.call(message, "conversation"))
+                    if (!$util.isString(message.conversation))
+                        return "conversation: string expected";
+                if (message.text != null && $Object.hasOwnProperty.call(message, "text"))
+                    if (!$util.isString(message.text))
+                        return "text: string expected";
+                return null;
+            };
+
+            /**
+             * Creates an AskAssistant message from a plain object. Also converts values to their respective internal types.
+             * @function fromObject
+             * @memberof vacuum.v1.AskAssistant
+             * @static
+             * @param {Object.<string,*>} object Plain object
+             * @returns {vacuum.v1.AskAssistant} AskAssistant
+             */
+            AskAssistant.fromObject = function (object, _depth) {
+                if (object instanceof $root.vacuum.v1.AskAssistant)
+                    return object;
+                if (!$util.isObject(object))
+                    throw $TypeError(".vacuum.v1.AskAssistant: object expected");
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var message = new $root.vacuum.v1.AskAssistant();
+                if (object.requestId != null)
+                    if ($Number(object.requestId) !== 0)
+                        message.requestId = object.requestId >>> 0;
+                if (object.conversation != null)
+                    if (typeof object.conversation !== "string" || object.conversation.length)
+                        message.conversation = $String(object.conversation);
+                if (object.text != null)
+                    if (typeof object.text !== "string" || object.text.length)
+                        message.text = $String(object.text);
+                return message;
+            };
+
+            /**
+             * Creates a plain object from an AskAssistant message. Also converts values to other types if specified.
+             * @function toObject
+             * @memberof vacuum.v1.AskAssistant
+             * @static
+             * @param {vacuum.v1.AskAssistant} message AskAssistant
+             * @param {$protobuf.IConversionOptions} [options] Conversion options
+             * @returns {Object.<string,*>} Plain object
+             */
+            AskAssistant.toObject = function (message, options, _depth) {
+                if (!options)
+                    options = {};
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var object = {};
+                if (options.defaults) {
+                    object.requestId = 0;
+                    object.conversation = "";
+                    object.text = "";
+                }
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId"))
+                    object.requestId = message.requestId;
+                if (message.conversation != null && $Object.hasOwnProperty.call(message, "conversation"))
+                    object.conversation = message.conversation;
+                if (message.text != null && $Object.hasOwnProperty.call(message, "text"))
+                    object.text = message.text;
+                return object;
+            };
+
+            /**
+             * Converts this AskAssistant to JSON.
+             * @function toJSON
+             * @memberof vacuum.v1.AskAssistant
+             * @instance
+             * @returns {Object.<string,*>} JSON object
+             */
+            AskAssistant.prototype.toJSON = function() {
+                return AskAssistant.toObject(this, $protobuf.util.toJSONOptions);
+            };
+
+            return AskAssistant;
+        })();
+
+        v1.NameRooms = (function() {
+
+            /**
+             * Properties of a NameRooms.
+             * @typedef {Object} vacuum.v1.NameRooms.$Properties
+             * @property {number|null} [requestId] NameRooms requestId
+             * @property {Array.<vacuum.v1.Rooms.Room.$Properties>|null} [rooms] NameRooms rooms
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+
+            /**
+             * Properties of a NameRooms.
+             * @memberof vacuum.v1
+             * @interface INameRooms
+             * @augments vacuum.v1.NameRooms.$Properties
+             * @deprecated Use vacuum.v1.NameRooms.$Properties instead.
+             */
+
+            /**
+             * Shape of a NameRooms.
+             * @typedef {vacuum.v1.NameRooms.$Properties} vacuum.v1.NameRooms.$Shape
+             */
+
+            /**
+             * Constructs a new NameRooms.
+             * @memberof vacuum.v1
+             * @classdesc Represents a NameRooms.
+             * @constructor
+             * @param {vacuum.v1.NameRooms.$Properties=} [properties] Properties to set
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+            var NameRooms = function (properties) {
+                this.rooms = [];
+                if (properties)
+                    for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                            this[keys[i]] = properties[keys[i]];
+            };
+
+            /**
+             * NameRooms requestId.
+             * @member {number} requestId
+             * @memberof vacuum.v1.NameRooms
+             * @instance
+             */
+            NameRooms.prototype.requestId = 0;
+
+            /**
+             * NameRooms rooms.
+             * @member {Array.<vacuum.v1.Rooms.Room.$Properties>} rooms
+             * @memberof vacuum.v1.NameRooms
+             * @instance
+             */
+            NameRooms.prototype.rooms = $util.emptyArray;
+
+            /**
+             * Creates a new NameRooms instance using the specified properties.
+             * @function create
+             * @memberof vacuum.v1.NameRooms
+             * @static
+             * @param {vacuum.v1.NameRooms.$Properties=} [properties] Properties to set
+             * @returns {vacuum.v1.NameRooms} NameRooms instance
+             * @type {{
+             *   (properties: vacuum.v1.NameRooms.$Shape): vacuum.v1.NameRooms & vacuum.v1.NameRooms.$Shape;
+             *   (properties?: vacuum.v1.NameRooms.$Properties): vacuum.v1.NameRooms;
+             * }}
+             */
+            NameRooms.create = function(properties) {
+                return new NameRooms(properties);
+            };
+
+            /**
+             * Encodes the specified NameRooms message. Does not implicitly {@link vacuum.v1.NameRooms.verify|verify} messages.
+             * @function encode
+             * @memberof vacuum.v1.NameRooms
+             * @static
+             * @param {vacuum.v1.NameRooms.$Properties} message NameRooms message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            NameRooms.encode = function (message, writer, _depth) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId") && message.requestId !== 0)
+                    writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.requestId);
+                if (message.rooms != null && message.rooms.length)
+                    for (var i = 0; i < message.rooms.length; ++i)
+                        $root.vacuum.v1.Rooms.Room.encode(message.rooms[i], writer.uint32(/* id 2, wireType 2 =*/18).fork(), _depth + 1).ldelim();
+                if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
+                    for (var i = 0; i < message.$unknowns.length; ++i)
+                        writer.raw(message.$unknowns[i]);
+                return writer;
+            };
+
+            /**
+             * Decodes a NameRooms message from the specified reader or buffer.
+             * @function decode
+             * @memberof vacuum.v1.NameRooms
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {vacuum.v1.NameRooms & vacuum.v1.NameRooms.$Shape} NameRooms
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            NameRooms.decode = function (reader, length, _end, _depth, _target) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $Reader.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var end, message, value;
+                if (length === $undefined)
+                    end = reader.len;
+                else {
+                    end = reader.pos + length;
+                    if (end > reader.len)
+                        throw $RangeError("index out of range");
+                    length = reader.len;
+                    reader.len = end;
+                }
+                message = _target || new $root.vacuum.v1.NameRooms();
+                while (reader.pos < end) {
+                    var start = reader.pos;
+                    var tag = reader.tag();
+                    if (tag === _end) {
+                        _end = $undefined;
+                        break;
+                    }
+                    var wireType = tag & 7;
+                    switch (tag >>>= 3) {
+                    case 1: {
+                            if (wireType !== 0)
+                                break;
+                            if (value = reader.uint32())
+                                message.requestId = value;
+                            else
+                                delete message.requestId;
+                            continue;
+                        }
+                    case 2: {
+                            if (wireType !== 2)
+                                break;
+                            if (!(message.rooms && message.rooms.length))
+                                message.rooms = [];
+                            message.rooms.push($root.vacuum.v1.Rooms.Room.decode(reader, reader.size(), $undefined, _depth + 1));
+                            continue;
+                        }
+                    }
+                    reader.skipType(wireType, _depth, tag);
+                    if (!reader.discardUnknown) {
+                        $util.makeProp(message, "$unknowns", false);
+                        (message.$unknowns || (message.$unknowns = [])).push(reader.raw(start, reader.pos));
+                    }
+                }
+                if (length !== $undefined) {
+                    if (reader.pos !== end)
+                        throw $RangeError("index out of range");
+                    reader.len = length;
+                }
+                if (_end !== $undefined)
+                    throw $Error("missing end group");
+                return message;
+            };
+
+            /**
+             * Verifies a NameRooms message.
+             * @function verify
+             * @memberof vacuum.v1.NameRooms
+             * @static
+             * @param {Object.<string,*>} message Plain object to verify
+             * @returns {string|null} `null` if valid, otherwise the reason why it is not
+             */
+            NameRooms.verify = function (message, _depth) {
+                if (typeof message !== "object" || message === null)
+                    return "object expected";
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    return "max depth exceeded";
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId"))
+                    if (!$util.isInteger(message.requestId))
+                        return "requestId: integer expected";
+                if (message.rooms != null && $Object.hasOwnProperty.call(message, "rooms")) {
+                    if (!$Array.isArray(message.rooms))
+                        return "rooms: array expected";
+                    for (var i = 0; i < message.rooms.length; ++i) {
+                        var error = $root.vacuum.v1.Rooms.Room.verify(message.rooms[i], _depth + 1);
+                        if (error)
+                            return "rooms." + error;
+                    }
+                }
+                return null;
+            };
+
+            /**
+             * Creates a NameRooms message from a plain object. Also converts values to their respective internal types.
+             * @function fromObject
+             * @memberof vacuum.v1.NameRooms
+             * @static
+             * @param {Object.<string,*>} object Plain object
+             * @returns {vacuum.v1.NameRooms} NameRooms
+             */
+            NameRooms.fromObject = function (object, _depth) {
+                if (object instanceof $root.vacuum.v1.NameRooms)
+                    return object;
+                if (!$util.isObject(object))
+                    throw $TypeError(".vacuum.v1.NameRooms: object expected");
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var message = new $root.vacuum.v1.NameRooms();
+                if (object.requestId != null)
+                    if ($Number(object.requestId) !== 0)
+                        message.requestId = object.requestId >>> 0;
+                if (object.rooms) {
+                    if (!$Array.isArray(object.rooms))
+                        throw $TypeError(".vacuum.v1.NameRooms.rooms: array expected");
+                    message.rooms = $Array(object.rooms.length);
+                    for (var i = 0; i < object.rooms.length; ++i) {
+                        if (!$util.isObject(object.rooms[i]))
+                            throw $TypeError(".vacuum.v1.NameRooms.rooms: object expected");
+                        message.rooms[i] = $root.vacuum.v1.Rooms.Room.fromObject(object.rooms[i], _depth + 1);
+                    }
+                }
+                return message;
+            };
+
+            /**
+             * Creates a plain object from a NameRooms message. Also converts values to other types if specified.
+             * @function toObject
+             * @memberof vacuum.v1.NameRooms
+             * @static
+             * @param {vacuum.v1.NameRooms} message NameRooms
+             * @param {$protobuf.IConversionOptions} [options] Conversion options
+             * @returns {Object.<string,*>} Plain object
+             */
+            NameRooms.toObject = function (message, options, _depth) {
+                if (!options)
+                    options = {};
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var object = {};
+                if (options.arrays || options.defaults)
+                    object.rooms = [];
+                if (options.defaults)
+                    object.requestId = 0;
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId"))
+                    object.requestId = message.requestId;
+                if (message.rooms && message.rooms.length) {
+                    object.rooms = $Array(message.rooms.length);
+                    for (var j = 0; j < message.rooms.length; ++j)
+                        object.rooms[j] = $root.vacuum.v1.Rooms.Room.toObject(message.rooms[j], options, _depth + 1);
+                }
+                return object;
+            };
+
+            /**
+             * Converts this NameRooms to JSON.
+             * @function toJSON
+             * @memberof vacuum.v1.NameRooms
+             * @instance
+             * @returns {Object.<string,*>} JSON object
+             */
+            NameRooms.prototype.toJSON = function() {
+                return NameRooms.toObject(this, $protobuf.util.toJSONOptions);
+            };
+
+            return NameRooms;
+        })();
+
         v1.GoTo = (function() {
 
             /**
@@ -5337,6 +8839,8 @@ $root.vacuum = (function() {
              * @property {vacuum.v1.CleaningRecord.$Properties|null} [record] Reply record
              * @property {boolean|null} [replanned] Reply replanned
              * @property {number|null} [jobId] Reply jobId
+             * @property {vacuum.v1.AssistantAnswer.$Properties|null} [answer] Reply answer
+             * @property {vacuum.v1.Rooms.$Properties|null} [rooms] Reply rooms
              * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
              */
 
@@ -5450,6 +8954,22 @@ $root.vacuum = (function() {
             Reply.prototype.jobId = 0;
 
             /**
+             * Reply answer.
+             * @member {vacuum.v1.AssistantAnswer.$Properties|null|undefined} answer
+             * @memberof vacuum.v1.Reply
+             * @instance
+             */
+            Reply.prototype.answer = null;
+
+            /**
+             * Reply rooms.
+             * @member {vacuum.v1.Rooms.$Properties|null|undefined} rooms
+             * @memberof vacuum.v1.Reply
+             * @instance
+             */
+            Reply.prototype.rooms = null;
+
+            /**
              * Creates a new Reply instance using the specified properties.
              * @function create
              * @memberof vacuum.v1.Reply
@@ -5502,6 +9022,10 @@ $root.vacuum = (function() {
                     writer.uint32(/* id 9, wireType 0 =*/72).bool(message.replanned);
                 if (message.jobId != null && $Object.hasOwnProperty.call(message, "jobId") && message.jobId !== 0)
                     writer.uint32(/* id 10, wireType 0 =*/80).uint32(message.jobId);
+                if (message.answer != null && $Object.hasOwnProperty.call(message, "answer"))
+                    $root.vacuum.v1.AssistantAnswer.encode(message.answer, writer.uint32(/* id 11, wireType 2 =*/90).fork(), _depth + 1).ldelim();
+                if (message.rooms != null && $Object.hasOwnProperty.call(message, "rooms"))
+                    $root.vacuum.v1.Rooms.encode(message.rooms, writer.uint32(/* id 12, wireType 2 =*/98).fork(), _depth + 1).ldelim();
                 if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
                     for (var i = 0; i < message.$unknowns.length; ++i)
                         writer.raw(message.$unknowns[i]);
@@ -5626,6 +9150,18 @@ $root.vacuum = (function() {
                                 delete message.jobId;
                             continue;
                         }
+                    case 11: {
+                            if (wireType !== 2)
+                                break;
+                            message.answer = $root.vacuum.v1.AssistantAnswer.decode(reader, reader.size(), $undefined, _depth + 1, message.answer);
+                            continue;
+                        }
+                    case 12: {
+                            if (wireType !== 2)
+                                break;
+                            message.rooms = $root.vacuum.v1.Rooms.decode(reader, reader.size(), $undefined, _depth + 1, message.rooms);
+                            continue;
+                        }
                     }
                     reader.skipType(wireType, _depth, tag);
                     if (!reader.discardUnknown) {
@@ -5700,6 +9236,16 @@ $root.vacuum = (function() {
                 if (message.jobId != null && $Object.hasOwnProperty.call(message, "jobId"))
                     if (!$util.isInteger(message.jobId))
                         return "jobId: integer expected";
+                if (message.answer != null && $Object.hasOwnProperty.call(message, "answer")) {
+                    var error = $root.vacuum.v1.AssistantAnswer.verify(message.answer, _depth + 1);
+                    if (error)
+                        return "answer." + error;
+                }
+                if (message.rooms != null && $Object.hasOwnProperty.call(message, "rooms")) {
+                    var error = $root.vacuum.v1.Rooms.verify(message.rooms, _depth + 1);
+                    if (error)
+                        return "rooms." + error;
+                }
                 return null;
             };
 
@@ -5806,6 +9352,16 @@ $root.vacuum = (function() {
                 if (object.jobId != null)
                     if ($Number(object.jobId) !== 0)
                         message.jobId = object.jobId >>> 0;
+                if (object.answer != null) {
+                    if (!$util.isObject(object.answer))
+                        throw $TypeError(".vacuum.v1.Reply.answer: object expected");
+                    message.answer = $root.vacuum.v1.AssistantAnswer.fromObject(object.answer, _depth + 1);
+                }
+                if (object.rooms != null) {
+                    if (!$util.isObject(object.rooms))
+                        throw $TypeError(".vacuum.v1.Reply.rooms: object expected");
+                    message.rooms = $root.vacuum.v1.Rooms.fromObject(object.rooms, _depth + 1);
+                }
                 return message;
             };
 
@@ -5844,6 +9400,8 @@ $root.vacuum = (function() {
                     object.record = null;
                     object.replanned = false;
                     object.jobId = 0;
+                    object.answer = null;
+                    object.rooms = null;
                 }
                 if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId"))
                     object.requestId = message.requestId;
@@ -5868,6 +9426,10 @@ $root.vacuum = (function() {
                     object.replanned = message.replanned;
                 if (message.jobId != null && $Object.hasOwnProperty.call(message, "jobId"))
                     object.jobId = message.jobId;
+                if (message.answer != null && $Object.hasOwnProperty.call(message, "answer"))
+                    object.answer = $root.vacuum.v1.AssistantAnswer.toObject(message.answer, options, _depth + 1);
+                if (message.rooms != null && $Object.hasOwnProperty.call(message, "rooms"))
+                    object.rooms = $root.vacuum.v1.Rooms.toObject(message.rooms, options, _depth + 1);
                 return object;
             };
 
@@ -6347,6 +9909,7 @@ $root.vacuum = (function() {
              * @property {number|null} [passes] CleaningJob passes
              * @property {vacuum.v1.CleaningJob.Option|null} [edges] CleaningJob edges
              * @property {vacuum.v1.CleaningJob.Option|null} [returnToDock] CleaningJob returnToDock
+             * @property {string|null} [room] CleaningJob room
              * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
              */
 
@@ -6452,6 +10015,14 @@ $root.vacuum = (function() {
             CleaningJob.prototype.returnToDock = 0;
 
             /**
+             * CleaningJob room.
+             * @member {string} room
+             * @memberof vacuum.v1.CleaningJob
+             * @instance
+             */
+            CleaningJob.prototype.room = "";
+
+            /**
              * Creates a new CleaningJob instance using the specified properties.
              * @function create
              * @memberof vacuum.v1.CleaningJob
@@ -6501,6 +10072,8 @@ $root.vacuum = (function() {
                     writer.uint32(/* id 8, wireType 0 =*/64).int32(message.edges);
                 if (message.returnToDock != null && $Object.hasOwnProperty.call(message, "returnToDock") && message.returnToDock !== 0)
                     writer.uint32(/* id 9, wireType 0 =*/72).int32(message.returnToDock);
+                if (message.room != null && $Object.hasOwnProperty.call(message, "room") && message.room !== "")
+                    writer.uint32(/* id 10, wireType 2 =*/82).string(message.room);
                 if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
                     for (var i = 0; i < message.$unknowns.length; ++i)
                         writer.raw(message.$unknowns[i]);
@@ -6631,6 +10204,15 @@ $root.vacuum = (function() {
                                 delete message.returnToDock;
                             continue;
                         }
+                    case 10: {
+                            if (wireType !== 2)
+                                break;
+                            if ((value = reader.stringVerify()).length)
+                                message.room = value;
+                            else
+                                delete message.room;
+                            continue;
+                        }
                     }
                     reader.skipType(wireType, _depth, tag);
                     if (!reader.discardUnknown) {
@@ -6694,6 +10276,9 @@ $root.vacuum = (function() {
                 if (message.returnToDock != null && $Object.hasOwnProperty.call(message, "returnToDock"))
                     if (typeof message.returnToDock !== "number" || (message.returnToDock | 0) !== message.returnToDock)
                         return "returnToDock: enum value expected";
+                if (message.room != null && $Object.hasOwnProperty.call(message, "room"))
+                    if (!$util.isString(message.room))
+                        return "room: string expected";
                 return null;
             };
 
@@ -6732,6 +10317,10 @@ $root.vacuum = (function() {
                     case "WHAT_PLAN":
                     case 3:
                         message.what = 3;
+                        break;
+                    case "WHAT_ROOM":
+                    case 4:
+                        message.what = 4;
                         break;
                     default:
                         if (typeof object.what === "number" && (object.what | 0) === object.what)
@@ -6795,6 +10384,9 @@ $root.vacuum = (function() {
                         if (typeof object.returnToDock === "number" && (object.returnToDock | 0) === object.returnToDock)
                             message.returnToDock = object.returnToDock;
                     }
+                if (object.room != null)
+                    if (typeof object.room !== "string" || object.room.length)
+                        message.room = $String(object.room);
                 return message;
             };
 
@@ -6826,6 +10418,7 @@ $root.vacuum = (function() {
                     object.passes = 0;
                     object.edges = options.enums === $String ? "OPTION_DEFAULT" : 0;
                     object.returnToDock = options.enums === $String ? "OPTION_DEFAULT" : 0;
+                    object.room = "";
                 }
                 if (message.what != null && $Object.hasOwnProperty.call(message, "what"))
                     object.what = options.enums === $String ? $root.vacuum.v1.CleaningJob.What[message.what] === $undefined ? message.what : $root.vacuum.v1.CleaningJob.What[message.what] : message.what;
@@ -6848,6 +10441,8 @@ $root.vacuum = (function() {
                     object.edges = options.enums === $String ? $root.vacuum.v1.CleaningJob.Option[message.edges] === $undefined ? message.edges : $root.vacuum.v1.CleaningJob.Option[message.edges] : message.edges;
                 if (message.returnToDock != null && $Object.hasOwnProperty.call(message, "returnToDock"))
                     object.returnToDock = options.enums === $String ? $root.vacuum.v1.CleaningJob.Option[message.returnToDock] === $undefined ? message.returnToDock : $root.vacuum.v1.CleaningJob.Option[message.returnToDock] : message.returnToDock;
+                if (message.room != null && $Object.hasOwnProperty.call(message, "room"))
+                    object.room = message.room;
                 return object;
             };
 
@@ -6870,6 +10465,7 @@ $root.vacuum = (function() {
              * @property {number} WHAT_AREA=1 WHAT_AREA value
              * @property {number} WHAT_SPOT=2 WHAT_SPOT value
              * @property {number} WHAT_PLAN=3 WHAT_PLAN value
+             * @property {number} WHAT_ROOM=4 WHAT_ROOM value
              */
             CleaningJob.What = (function() {
                 var valuesById = $Object.create(null), values = $Object.create(valuesById);
@@ -6877,6 +10473,7 @@ $root.vacuum = (function() {
                 values[valuesById[1] = "WHAT_AREA"] = 1;
                 values[valuesById[2] = "WHAT_SPOT"] = 2;
                 values[valuesById[3] = "WHAT_PLAN"] = 3;
+                values[valuesById[4] = "WHAT_ROOM"] = 4;
                 return values;
             })();
 

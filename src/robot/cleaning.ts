@@ -1,9 +1,9 @@
 // Cleaning from the phone. Clean opens the choosing panel: Everything, an Area (dragged on the
-// map), a Spot (tapped) or a saved Plan, with the options. Each change of choice asks the robot
-// for a preview, so its rows and estimate are on the screen before anything moves. Start sends the
-// job; the robot answers once it has planned it (with the job's number), or says why not, and then
-// switches to cleaning mode by itself. Pause and Resume ask the robot; Stop and Dock are the usual
-// mode requests and end the clean.
+// map), a Spot (tapped), a Room (by name) or a saved Plan, with the options. Each change of
+// choice asks the robot for a preview, so its rows and estimate are on the screen before anything
+// moves. Start sends the job; the robot answers once it has planned it (with the job's number), or
+// says why not, and then switches to cleaning mode by itself. Pause and Resume ask the robot; Stop
+// and Dock are the usual mode requests and end the clean.
 //
 // The robot plans, drives and records every clean. The app only asks and shows the answers.
 
@@ -106,6 +106,13 @@ export function placeSpot(x: number, y: number): void {
 
 export function choosePlan(name: string): void {
   useChoice.setState({ planName: name });
+  schedulePreview();
+}
+
+/** A room of the map in use, by name; null when the one chosen is no longer there. */
+export function chooseRoom(name: string | null): void {
+  if (useChoice.getState().roomName === name) return;
+  useChoice.setState({ roomName: name });
   schedulePreview();
 }
 

@@ -23,6 +23,13 @@
 // No-go zones: "Zones" opens the editor (zones.ts). A tap picks a zone; the picked rectangle is
 // dragged like an area (a corner resizes it, its middle moves it); after Add, a tap places a
 // square, or a drag draws one.
+//
+// Rooms: each saved room's name, small and light, at its open spot; no outlines, to keep the map
+// clean. "Rooms" opens the editor (rooms.ts): then each room's outline is drawn thin, and a tap on
+// a room or its name renames it. The names are hidden while the zones are being changed.
+//
+// A place the robot pointed to in the chat ("Show on map") is drawn like the Go to pin, in its own
+// colour, until the map is tapped or for a minute. If it is off the screen, the whole map is shown.
 
 import {
   AlphaType,
@@ -63,6 +70,9 @@ import { useChoice, useCleaning } from '../robot/cleaningStore';
 import { cleaningControlsFor, previewFading, visibleCleaned, visiblePieces } from '../robot/cleaningView';
 import { livePose, POSE_STALE_AFTER_MS } from '../robot/live';
 import { angleOnPicture, cellsToRgba, fitView, fromPicture, type MapPlacement, toPicture, zoomAbout } from '../robot/mapPicture';
+import { clearMark, useMark } from '../robot/markStore';
+import { useRoomEdit } from '../robot/roomEditStore';
+import { openRoomEditor, startRenaming, tapRooms } from '../robot/rooms';
 import { isFresh, useRobot } from '../robot/store';
 import { goToPin, placePin, stopPicking } from '../robot/trip';
 import { useTrip } from '../robot/tripStore';
@@ -72,6 +82,7 @@ import { openZoneEditor, setZoneBox, tapZones, useZoneEdit, whyNoZoneEdit, zoneB
 import { type MapData, type Pose, sameGoal } from '../transport/messages';
 import { AreaLayer, CleanedLayer, PlanLayer, SpotLayer } from './CleaningLayers';
 import { ageText, useNow } from './parts';
+import { RoomLabels } from './RoomLabels';
 import { colors, spacing } from './theme';
 
 const ROBOT_RADIUS_M = 0.175;
@@ -84,6 +95,9 @@ const ZONE_EDGE = 'rgba(220,38,38,0.85)';
 const GOAL_RADIUS_PX = 8; // on screen
 const FRONTIER_RADIUS_PX = 5; // the places still to look at, while exploring
 const FRONTIER_COLOR = '#f59e0b';
+const MARK_COLOR = '#7c3aed'; // a place the robot pointed to in the chat
+const ROOM_EDGE = 'rgba(71,85,105,0.9)'; // the rooms' outlines while they are being changed
+const MARK_MARGIN_PX = 16; // a mark closer than this to the edge counts as off the screen
 const HANDLE_REACH_PX = 28; // on screen: a finger this close to an area's corner takes that corner
 const NO_EDIT: EditStart = { kind: EDIT_PAN, ax: 0, ay: 0 };
 const GLIDE_MS = 100; // the time between two positions: the robot glides from one to the next
@@ -148,6 +162,9 @@ export function MapView({ small = false }: { small?: boolean }) {
   const cleanedEntry = useCleaning((s) => s.cleaned);
   const choice = useChoice();
   const zoneEdit = useZoneEdit();
+  const roomEdit = useRoomEdit();
+  const robotRooms = useRobot((s) => s.rooms);
+  const mark = useMark((s) => s.mark);
   const map = mapEntry?.value ?? null;
   const image = useMemo(() => (map ? makeImage(map) : null), [map]);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -250,6 +267,7 @@ export function MapView({ small = false }: { small?: boolean }) {
   const choosing = choice.open && !running && !small;
   const marking = choosing && (choice.kind === 'area' || choice.kind === 'spot') ? choice.kind : null;
   const editingZones = zoneEdit.open && !small;
+  const editingRooms = roomEdit.open && !small;
   const pickedZone = editingZones && zoneEdit.selected !== null ? (zoneEdit.draft[zoneEdit.selected] ?? null) : null;
   const pickedBox = pickedZone ? zoneBox(pickedZone.points) : null;
   // A rectangle follows the finger: the area being marked, the zone picked, or the zone being added.
@@ -360,7 +378,9 @@ export function MapView({ small = false }: { small?: boolean }) {
       const px = (e.x - tx.value) / scale.value;
       const py = (e.y - ty.value) / scale.value;
       const p = fromPicture(map, px, py);
-      if (useZoneEdit.getState().open) tapZones(p.x, p.y);
+      clearMark(); // a tap elsewhere: the place shown from the chat has been seen
+      if (useRoomEdit.getState().open) tapRooms(p.x, p.y);
+      else if (useZoneEdit.getState().open) tapZones(p.x, p.y);
       else if (useTrip.getState().picking) placePin(p.x, p.y);
       else if (marking === 'spot') placeSpot(p.x, p.y);
       else if (marking === 'area') placeArea(p.x, p.y);
@@ -416,6 +436,38 @@ export function MapView({ small = false }: { small?: boolean }) {
     const why = zoneEditBlocked ?? openZoneEditor();
     if (why) showNotice({ tone: 'info', title: "Can't change the no-go zones now", text: why });
   }
+  // The rooms are changed under the same rule as the zones: they belong to the map in use.
+  function editRooms() {
+    const why = zoneEditBlocked ?? openRoomEditor();
+    if (why) showNotice({ tone: 'info', title: "Can't change the rooms now", text: why });
+  }
+
+  // The rooms: while being changed, the edited ones with their outlines; otherwise the robot's
+  // names only, for the saved map in use (not over a map being made, nor while zones are changed).
+  const labelledRooms = editingRooms
+    ? roomEdit.draft
+    : !small && !editingZones && !makingMap && robotRooms && robotRooms.value.mapName === currentMap
+      ? robotRooms.value.rooms
+      : [];
+  const roomLine = useDerivedValue(() => 1.5 / scale.value);
+  const roomPath = useMemo(() => {
+    if (!map || !editingRooms || roomEdit.draft.length === 0) return null;
+    const builder = Skia.PathBuilder.Make();
+    for (const room of roomEdit.draft) if (room.points.length >= 6) addPolygon(builder, map, room.points);
+    return builder.build();
+  }, [map, editingRooms, roomEdit.draft]);
+
+  // A place shown from the chat. Off the screen (the map was moved or zoomed), the whole map.
+  const markPic = map && mark && !small ? toPicture(map, mark.x, mark.y) : null;
+  useEffect(() => {
+    if (!markPic || size.width === 0) return;
+    const sx = markPic.px * scale.value + tx.value;
+    const sy = markPic.py * scale.value + ty.value;
+    const m = MARK_MARGIN_PX;
+    if (sx < m || sy < m || sx > size.width - m || sy > size.height - m) fit();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mark?.id, small, size.width, size.height]);
+
   const pinPic = map && picking && pin ? toPicture(map, pin.x, pin.y) : null;
   const pinProblem = picking && pin ? pin.problem : null;
   const canGo = pin !== null && pinProblem === null && busy === null && connected;
@@ -456,6 +508,7 @@ export function MapView({ small = false }: { small?: boolean }) {
                   <Path path={zonePath} style="stroke" strokeWidth={outline} color={ZONE_EDGE} />
                 </Group>
               ) : null}
+              {roomPath ? <Path path={roomPath} style="stroke" strokeWidth={roomLine} color={ROOM_EDGE} strokeJoin="round" /> : null}
               <PlanLayer map={map} pieces={pieces} scale={scale} faded={fading} />
               {pickedPath ? <Path path={pickedPath} style="stroke" strokeWidth={zoneLine} color={ZONE_EDGE} /> : null}
               {marking === 'area' ? <AreaLayer area={areaPic} scale={scale} /> : null}
@@ -477,6 +530,12 @@ export function MapView({ small = false }: { small?: boolean }) {
                 <Group>
                   <Circle cx={pinPic.px} cy={pinPic.py} r={markerRadius} color={pinProblem ? BAD_PIN_COLOR : PIN_COLOR} />
                   <Circle cx={pinPic.px} cy={pinPic.py} r={markerHole} color="#ffffff" />
+                </Group>
+              ) : null}
+              {markPic ? (
+                <Group>
+                  <Circle cx={markPic.px} cy={markPic.py} r={markerRadius} color={MARK_COLOR} />
+                  <Circle cx={markPic.px} cy={markPic.py} r={markerHole} color="#ffffff" />
                 </Group>
               ) : null}
               {robotKnown ? (
@@ -504,6 +563,9 @@ export function MapView({ small = false }: { small?: boolean }) {
       <GestureDetector gesture={gestures}>
         <View style={StyleSheet.absoluteFill}>{canvas}</View>
       </GestureDetector>
+      {labelledRooms.length > 0 ? (
+        <RoomLabels rooms={labelledRooms} map={map} view={{ scale, tx, ty }} onPress={editingRooms && roomEdit.work === null ? startRenaming : undefined} />
+      ) : null}
 
       {picking ? (
         <Text style={[styles.badge, styles.topLeft, styles.prompt, pinProblem ? styles.badPrompt : null]}>
@@ -511,24 +573,30 @@ export function MapView({ small = false }: { small?: boolean }) {
         </Text>
       ) : editingZones ? (
         <Text style={[styles.badge, styles.topLeft, styles.prompt, styles.zonePrompt]}>{zonePrompt(zoneEdit.adding, pickedZone !== null, pickedBox !== null)}</Text>
+      ) : editingRooms ? (
+        <Text style={[styles.badge, styles.topLeft, styles.prompt, styles.roomPrompt]}>
+          {roomEdit.work !== null ? 'Wait for the robot…' : roomEdit.draft.length > 0 ? 'Tap a room to rename it' : 'Find rooms to split the map'}
+        </Text>
       ) : choosing && mapPrompt(choice) ? (
         <Text style={[styles.badge, styles.topLeft, styles.prompt, styles.cleanPrompt]}>{mapPrompt(choice)}</Text>
       ) : label ? (
         <Text style={[styles.badge, styles.topLeft]}>{label}</Text>
       ) : null}
-      <Pressable accessibilityRole="button" onPress={fit} style={[styles.badge, styles.topRight]}>
-        <Text style={styles.fitText}>Fit</Text>
-      </Pressable>
-      {currentMap && connected && !picking && !choosing && !editingZones && !makingMap ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Change the no-go zones"
-          onPress={editZones}
-          style={[styles.badge, styles.besideFit]}
-        >
-          <Text style={[styles.fitText, zoneEditBlocked !== null && styles.blockedText]}>Zones</Text>
+      <View style={styles.topRight}>
+        <Pressable accessibilityRole="button" onPress={fit} style={styles.mapButton}>
+          <Text style={styles.fitText}>Fit</Text>
         </Pressable>
-      ) : null}
+        {currentMap && connected && !picking && !choosing && !editingZones && !editingRooms && !makingMap ? (
+          <>
+            <Pressable accessibilityRole="button" accessibilityLabel="Change the no-go zones" onPress={editZones} style={styles.mapButton}>
+              <Text style={[styles.fitText, zoneEditBlocked !== null && styles.blockedText]}>Zones</Text>
+            </Pressable>
+            <Pressable accessibilityRole="button" accessibilityLabel="Change the rooms" onPress={editRooms} style={styles.mapButton}>
+              <Text style={[styles.fitText, zoneEditBlocked !== null && styles.blockedText]}>Rooms</Text>
+            </Pressable>
+          </>
+        ) : null}
+      </View>
       {picking ? (
         <View style={styles.pickBar}>
           <Pressable accessibilityRole="button" onPress={stopPicking} style={[styles.pickButton, styles.pickCancel]}>
@@ -568,8 +636,15 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   topLeft: { top: spacing.m, left: spacing.m },
-  topRight: { top: spacing.m, right: spacing.m },
-  besideFit: { top: spacing.m, right: spacing.m + 56 },
+  // Fit, with Zones and Rooms below it: one column at the edge, so that at a large text size they
+  // leave the labels on the left alone.
+  topRight: { position: 'absolute', top: spacing.m, right: spacing.m, alignItems: 'flex-end', gap: spacing.xs + 2 },
+  mapButton: {
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderRadius: 8,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.xs + 2,
+  },
   blockedText: { color: colors.muted },
   secondLeft: { top: spacing.m + 36, left: spacing.m },
   fitText: { fontSize: 14, fontWeight: '600', color: colors.primary },
@@ -577,6 +652,7 @@ const styles = StyleSheet.create({
   badPrompt: { color: BAD_PIN_COLOR },
   cleanPrompt: { color: colors.cleaning },
   zonePrompt: { color: colors.danger },
+  roomPrompt: { color: '#334155' },
   pickBar: { position: 'absolute', left: spacing.m, right: spacing.m, bottom: spacing.m, flexDirection: 'row', gap: spacing.m },
   pickButton: { flex: 1, height: 48, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   pickCancel: { backgroundColor: 'rgba(255,255,255,0.95)', borderWidth: 1, borderColor: colors.border },

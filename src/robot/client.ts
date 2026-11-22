@@ -5,6 +5,7 @@ import { GatewayConnection, type SocketLike } from '../transport/connection';
 import {
   CommandType,
   DataType,
+  decodeAssistantStatus,
   decodeCleanedArea,
   decodeCleaningPlan,
   decodeCleaningStatus,
@@ -15,7 +16,9 @@ import {
   decodeNoGoZones,
   decodeRobotPose,
   decodeRoute,
+  decodeRobotSettings,
   decodeRobotState,
+  decodeRooms,
   decodeSafetyStatus,
   encodePing,
 } from '../transport/messages';
@@ -25,6 +28,10 @@ import { resetCleaning, useCleaning } from './cleaningStore';
 import { onExplorationStatus } from './explorationNews';
 import { resetExploring, useExploring } from './exploringStore';
 import { resetHistory } from './historyStore';
+import { clearMark } from './markStore';
+import { resetRoomEdit } from './roomEditStore';
+import { resetSettings, useSettings } from './settingsStore';
+import { robotReported } from './settingsSync';
 import { onNavigationStatus } from './tripOutcome';
 import { resetTrip } from './tripStore';
 import type { GatewayAddress } from './address';
@@ -120,6 +127,18 @@ function receive(type: number, payload: Uint8Array, now: () => number): void {
     case DataType.DATA_NO_GO_ZONES:
       useRobot.setState({ zones: { value: decodeNoGoZones(payload), at: now() } });
       break;
+    case DataType.DATA_ROBOT_SETTINGS: {
+      const settings = decodeRobotSettings(payload);
+      useRobot.setState({ settings: { value: settings, at: now() } });
+      useSettings.setState((s) => robotReported(s, settings));
+      break;
+    }
+    case DataType.DATA_ROOMS:
+      useRobot.setState({ rooms: { value: decodeRooms(payload), at: now() } });
+      break;
+    case DataType.DATA_ASSISTANT_STATUS:
+      useRobot.setState({ assistant: { value: decodeAssistantStatus(payload), at: now() } });
+      break;
     case DataType.DATA_CLEANING_STATUS: {
       const status = decodeCleaningStatus(payload);
       useCleaning.setState({ status: { value: status, at: now() } });
@@ -158,5 +177,8 @@ export function disconnect(): void {
   resetCleaning();
   resetExploring();
   resetHistory();
+  resetSettings();
+  resetRoomEdit();
+  clearMark();
   useRobot.setState(initialRobotData);
 }

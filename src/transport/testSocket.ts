@@ -68,6 +68,29 @@ export function safetyFrame(source: string): Uint8Array {
   return dataFrame(pb.DataType.DATA_SAFETY_STATUS, pb.SafetyStatus.encode({ source }).finish());
 }
 
+/** The robot's settings and limits as it ships, with any of them changed. */
+export function settingsFrame(changed: vacuum.v1.RobotSettings.$Properties = {}): Uint8Array {
+  const settings = {
+    cleaningSpeed: 0.2,
+    manualSpeed: 0.3,
+    rowSpacing: 0.25,
+    rowAngleAuto: true,
+    rowAngle: 0,
+    limits: {
+      cleaningSpeedMin: 0.1,
+      cleaningSpeedMax: 0.3,
+      manualSpeedMin: 0.1,
+      manualSpeedMax: 0.3,
+      rowSpacingMin: 0.1,
+      rowSpacingMax: 0.3,
+      rowSpacingStep: 0.05,
+    },
+    manualTurnSpeed: 1.2,
+    ...changed,
+  };
+  return dataFrame(pb.DataType.DATA_ROBOT_SETTINGS, pb.RobotSettings.encode(settings).finish());
+}
+
 export const ReplyResult = pb.Reply.Result;
 
 /** A 2 x 2 map, cells given as run-length pairs. */
@@ -126,6 +149,22 @@ export interface SentCommand {
   maxRecords?: number; // ListCleaningHistory
   recordId?: string; // GetCleaningRecord
   zones?: { mapName: string; zones: { name: string; pointsCm: number[] }[] }; // SetNoGoZones
+  settings?: vacuum.v1.RobotSettings; // SetRobotSettings: numbers as the 32-bit floats they travel as
+  rooms?: { mapName: string; rooms: TestRoom[] }; // SetRooms, NameRooms (no map name)
+  question?: { conversation: string; text: string }; // AskAssistant
+}
+
+/** A room as it travels: whole centimetres. */
+export interface TestRoom {
+  name: string;
+  pointsCm: number[];
+  xCm: number;
+  yCm: number;
+  area: number;
+}
+
+function testRoom(r: vacuum.v1.Rooms.Room.$Properties): TestRoom {
+  return { name: r.name ?? '', pointsCm: Array.from(r.pointsCm ?? []), xCm: r.xCm ?? 0, yCm: r.yCm ?? 0, area: r.area ?? 0 };
 }
 
 /** The commands a socket has sent, decoded far enough to check them. */
@@ -165,6 +204,16 @@ export function sentCommands(socket: TestSocket): SentCommand[] {
       const m = pb.SetNoGoZones.decode(payload);
       out.zones = { mapName: m.mapName, zones: m.zones.map((z) => ({ name: z.name ?? '', pointsCm: Array.from(z.pointsCm ?? []) })) };
     }
+    if (type === pb.CommandType.COMMAND_SET_ROBOT_SETTINGS) out.settings = pb.RobotSettings.create(pb.SetRobotSettings.decode(payload).settings ?? {});
+    if (type === pb.CommandType.COMMAND_SET_ROOMS) {
+      const m = pb.SetRooms.decode(payload);
+      out.rooms = { mapName: m.mapName, rooms: m.rooms.map(testRoom) };
+    }
+    if (type === pb.CommandType.COMMAND_NAME_ROOMS) out.rooms = { mapName: '', rooms: pb.NameRooms.decode(payload).rooms.map(testRoom) };
+    if (type === pb.CommandType.COMMAND_ASK_ASSISTANT) {
+      const m = pb.AskAssistant.decode(payload);
+      out.question = { conversation: m.conversation, text: m.text };
+    }
     return out;
   });
 }
@@ -177,6 +226,14 @@ export const NavState = pb.NavigationStatus.State;
 
 export function zonesFrame(zones: { name: string; pointsCm: number[] }[], mapName = 'house'): Uint8Array {
   return dataFrame(pb.DataType.DATA_NO_GO_ZONES, pb.NoGoZones.encode({ zones, mapName }).finish());
+}
+
+export function roomsFrame(rooms: TestRoom[], mapName = 'house'): Uint8Array {
+  return dataFrame(pb.DataType.DATA_ROOMS, pb.Rooms.encode({ rooms, mapName }).finish());
+}
+
+export function assistantStatusFrame(busy: boolean, conversation: string, doing: string): Uint8Array {
+  return dataFrame(pb.DataType.DATA_ASSISTANT_STATUS, pb.AssistantStatus.encode({ busy, conversation, doing }).finish());
 }
 
 /** A map of free cells, with an optional set of cells (index -> value) changed. */

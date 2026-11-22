@@ -1,7 +1,15 @@
 import { type Choice, choiceHint, jobFor, jobKey, mapPrompt, planNameProblem } from './cleanChoice';
 import { DEFAULT_OPTIONS } from './cleaningStore';
 
-const choice = (more: Partial<Choice> = {}): Choice => ({ kind: 'everything', area: null, spot: null, planName: null, options: DEFAULT_OPTIONS, ...more });
+const choice = (more: Partial<Choice> = {}): Choice => ({
+  kind: 'everything',
+  area: null,
+  spot: null,
+  planName: null,
+  roomName: null,
+  options: DEFAULT_OPTIONS,
+  ...more,
+});
 
 describe('the job for what the user chose', () => {
   it('sends every option explicitly: once, no edges, back to the dock by default', () => {
@@ -15,6 +23,7 @@ describe('the job for what the user chose', () => {
       passes: 1,
       edges: 'off',
       returnToDock: 'on',
+      room: '',
     });
     expect(jobFor(choice({ options: { edges: true, twice: true, returnToDock: false } }))).toMatchObject({
       passes: 2,
@@ -32,6 +41,28 @@ describe('the job for what the user chose', () => {
     expect(jobFor(choice({ kind: 'spot', spot: { x: 2.5, y: -1.25 } }))).toMatchObject({ what: 'spot', spotX: 2.5, spotY: -1.25, area: [] });
   });
 
+  it('a room: its name, with the options like the others', () => {
+    expect(jobFor(choice({ kind: 'room', roomName: 'Kitchen' }))).toEqual({
+      what: 'room',
+      area: [],
+      spotX: 0,
+      spotY: 0,
+      planName: '',
+      direction: '',
+      passes: 1,
+      edges: 'off',
+      returnToDock: 'on',
+      room: 'Kitchen',
+    });
+    expect(jobFor(choice({ kind: 'room', roomName: 'Kitchen', options: { edges: true, twice: true, returnToDock: false } }))).toMatchObject({
+      what: 'room',
+      room: 'Kitchen',
+      passes: 2,
+      edges: 'on',
+      returnToDock: 'off',
+    });
+  });
+
   it('a saved plan: its name', () => {
     expect(jobFor(choice({ kind: 'plan', planName: 'Under the table' }))).toMatchObject({ what: 'plan', planName: 'Under the table' });
   });
@@ -45,6 +76,8 @@ describe('the job for what the user chose', () => {
     expect(choiceHint(choice({ kind: 'spot' }))).toBe('Tap the middle of the spot to clean');
     expect(jobFor(choice({ kind: 'plan' }))).toBeNull();
     expect(choiceHint(choice({ kind: 'plan' }))).toBe('Pick a saved plan');
+    expect(jobFor(choice({ kind: 'room' }))).toBeNull();
+    expect(choiceHint(choice({ kind: 'room' }))).toBe('Pick a room');
     expect(choiceHint(choice())).toBeNull();
   });
 
@@ -63,6 +96,8 @@ describe('what the map says while choosing', () => {
     expect(mapPrompt(choice({ kind: 'spot', spot: { x: 0, y: 0 } }))).toBe('Tap again to move the spot');
     expect(mapPrompt(choice())).toBeNull();
     expect(mapPrompt(choice({ kind: 'plan' }))).toBeNull(); // the list is in the panel, not on the map
+    expect(mapPrompt(choice({ kind: 'room' }))).toBeNull();
+    expect(mapPrompt(choice({ kind: 'room', roomName: 'Kitchen' }))).toBeNull();
   });
 });
 

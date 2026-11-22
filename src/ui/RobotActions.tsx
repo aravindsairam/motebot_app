@@ -15,6 +15,8 @@ import { releaseStick } from '../robot/drive';
 import { explore } from '../robot/exploring';
 import { discardMap, startMapping } from '../robot/mapping';
 import { modeLook } from '../robot/modes';
+import { useRoomEdit } from '../robot/roomEditStore';
+import { closeRoomEditor } from '../robot/rooms';
 import { isFresh, useRobot } from '../robot/store';
 import { startPicking, stopPicking } from '../robot/trip';
 import { forgetGoal, useTrip } from '../robot/tripStore';
@@ -22,6 +24,7 @@ import { closeZoneEditor, useZoneEdit } from '../robot/zones';
 import { ActionBar, type BarButton } from './ActionBar';
 import { CleanChooserBar } from './CleanChooser';
 import { Button, useNow } from './parts';
+import { RoomEditorBar } from './RoomEditor';
 import { SaveMapDialog } from './SaveMapDialog';
 import { ZoneEditorBar } from './ZoneEditor';
 import { colors, spacing } from './theme';
@@ -134,7 +137,10 @@ export function useRobotActions() {
     }
   }
 
-  return { controls, cleaning, busy, notice, live, connected, stop, dock, drive, newMap, discard, reset, switchTo, clean, pauseOrResume, startExploring };
+  // Stop as every screen shows it: usable unless the robot is known to be at rest.
+  const stopButton = { enabled: controls.stop.enabled && busy !== 'stop', label: busy === 'stop' ? 'STOPPING…' : 'STOP', onPress: stop };
+
+  return { controls, cleaning, busy, notice, live, connected, stop, stopButton, dock, drive, newMap, discard, reset, switchTo, clean, pauseOrResume, startExploring };
 }
 
 /** On the main screen: the robot is in failsafe, and how to get out of it. */
@@ -156,14 +162,17 @@ function FailsafeCard() {
 
 /** The bar at the bottom of a tab. The main screen's has Go to, Drive, New map and Dock, with
  *  Clean beside Stop; while mapping, Save map and Discard; while choosing a clean, the choosing
- *  panel; while cleaning, Pause (or Resume) and Dock. The other tabs' have only Dock. Stop ends
- *  whatever the robot is doing, a trip or a clean included; in mapping it only stops the motion. */
+ *  panel; while changing the no-go zones or the rooms, their editor; while cleaning, Pause (or
+ *  Resume) and Dock. The other tabs' have only Dock. Stop ends whatever the robot is doing, a
+ *  trip or a clean included; in mapping it only stops the motion. */
 export function RobotActionBar({ main = false }: { main?: boolean }) {
-  const { controls, cleaning, busy, notice, live, connected, stop, dock, drive, newMap, discard, clean, pauseOrResume, startExploring } = useRobotActions();
+  const { controls, cleaning, busy, notice, live, connected, stopButton, dock, drive, newMap, discard, clean, pauseOrResume, startExploring } = useRobotActions();
   const picking = useTrip((s) => s.picking);
   const choosing = useChoice((s) => s.open);
   const editingZones = useZoneEdit((s) => s.open);
   const zonesMap = useZoneEdit((s) => s.mapName);
+  const editingRooms = useRoomEdit((s) => s.open);
+  const roomsMap = useRoomEdit((s) => s.mapName);
   const mode = useRobot((s) => s.robotState?.value.state ?? '');
   const currentMap = useRobot((s) => s.robotState?.value.currentMap ?? '');
   const [saving, setSaving] = useState(false);
@@ -180,14 +189,21 @@ export function RobotActionBar({ main = false }: { main?: boolean }) {
   useEffect(() => {
     if (leaveZones) closeZoneEditor();
   }, [leaveZones]);
+  // The same for the rooms: they belong to the map in use.
+  const leaveRooms = main && editingRooms && live && (controls.makingMap || ['cleaning', 'failsafe'].includes(mode) || currentMap !== roomsMap);
+  useEffect(() => {
+    if (leaveRooms) closeRoomEditor();
+  }, [leaveRooms]);
 
-  const stopProps = { enabled: controls.stop.enabled && busy !== 'stop', label: busy === 'stop' ? 'STOPPING…' : 'STOP', onPress: stop };
   const cleaningNow = main && (cleaning.running || busy === 'clean');
   if (main && editingZones && !leaveZones) {
-    return <ZoneEditorBar stop={stopProps} />;
+    return <ZoneEditorBar stop={stopButton} />;
+  }
+  if (main && editingRooms && !leaveRooms) {
+    return <RoomEditorBar stop={stopButton} />;
   }
   if (main && choosing && !cleaningNow && !leaveChoosing) {
-    return <CleanChooserBar cleanable={cleaning.clean} connected={connected} stop={stopProps} />;
+    return <CleanChooserBar cleanable={cleaning.clean} connected={connected} stop={stopButton} />;
   }
 
   const dockButton: BarButton = {
@@ -282,7 +298,7 @@ export function RobotActionBar({ main = false }: { main?: boolean }) {
     <ActionBar
       buttons={buttons}
       lead={lead}
-      stop={stopProps}
+      stop={stopButton}
       notice={notice}
       onDismiss={dismissNotice}
       banner={main && live && mode === 'failsafe' ? <FailsafeCard /> : null}

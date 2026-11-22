@@ -18,6 +18,7 @@ import { useActions } from './actionsStore';
 import {
   chooseKind,
   choosePlan,
+  chooseRoom,
   closeChooser,
   deletePlan,
   forgetCleanStart,
@@ -46,7 +47,7 @@ const flush = async () => {
 beforeEach(() => {
   jest.useFakeTimers();
   TestSocket.made = [];
-  useChoice.setState({ kind: 'everything', area: null, spot: null, planName: null, options: DEFAULT_OPTIONS });
+  useChoice.setState({ kind: 'everything', area: null, spot: null, planName: null, roomName: null, options: DEFAULT_OPTIONS });
 });
 afterEach(() => {
   disconnect();
@@ -209,6 +210,40 @@ describe('choosing what to clean', () => {
     setOption('twice', true);
     jest.advanceTimersByTime(0);
     expect((await lastSent(socket)).job).toMatchObject({ passes: 2 });
+  });
+
+  it('a room: nothing until one is picked, then a preview of that room, and Start cleans it', async () => {
+    const socket = connected();
+    openChooser();
+    jest.advanceTimersByTime(0);
+    await answer(socket, (id) => replyWith(id, ReplyResult.RESULT_OK, '', { estimate: ESTIMATE }));
+    chooseKind('room');
+    jest.advanceTimersByTime(0);
+    await flush();
+    expect(sentCommands(socket)).toHaveLength(1);
+    expect(useChoice.getState().preview.state).toBe('none');
+    chooseRoom('Kitchen');
+    jest.advanceTimersByTime(0);
+    const preview = await answer(socket, (id) => replyWith(id, ReplyResult.RESULT_OK, '', { estimate: ESTIMATE }));
+    expect(preview).toMatchObject({ type: CommandType.COMMAND_PREVIEW_CLEANING, job: { what: What.WHAT_ROOM, room: 'Kitchen', passes: 1 } });
+    expect(useChoice.getState().preview.state).toBe('ready');
+    const done = startClean();
+    const start = await answer(socket, (id) => replyWith(id, ReplyResult.RESULT_OK, '', { jobId: 8, estimate: ESTIMATE }));
+    await done;
+    expect(start).toMatchObject({ type: CommandType.COMMAND_START_CLEANING, job: { what: What.WHAT_ROOM, room: 'Kitchen' } });
+    expect(useCleaning.getState().mine).toBe(8);
+  });
+
+  it('a room no longer there is unchosen: no preview is asked for it', async () => {
+    const socket = connected();
+    openChooser();
+    chooseKind('room');
+    chooseRoom('Kitchen');
+    chooseRoom(null);
+    jest.advanceTimersByTime(0);
+    await flush();
+    expect(sentCommands(socket).filter((c) => c.job?.what === What.WHAT_ROOM)).toEqual([]);
+    expect(useChoice.getState().preview.state).toBe('none');
   });
 
   it('closes when a clean starts anywhere, for the cleaning view', () => {

@@ -46,6 +46,15 @@ export namespace vacuum {
             /** COMMAND_SET_NO_GO_ZONES value */
             COMMAND_SET_NO_GO_ZONES = 18,
 
+            /** COMMAND_SET_ROBOT_SETTINGS value */
+            COMMAND_SET_ROBOT_SETTINGS = 19,
+
+            /** COMMAND_FIND_ROOMS value */
+            COMMAND_FIND_ROOMS = 20,
+
+            /** COMMAND_SET_ROOMS value */
+            COMMAND_SET_ROOMS = 21,
+
             /** COMMAND_GO_TO value */
             COMMAND_GO_TO = 32,
 
@@ -80,7 +89,13 @@ export namespace vacuum {
             COMMAND_LIST_CLEANING_HISTORY = 70,
 
             /** COMMAND_GET_CLEANING_RECORD value */
-            COMMAND_GET_CLEANING_RECORD = 71
+            COMMAND_GET_CLEANING_RECORD = 71,
+
+            /** COMMAND_ASK_ASSISTANT value */
+            COMMAND_ASK_ASSISTANT = 80,
+
+            /** COMMAND_NAME_ROOMS value */
+            COMMAND_NAME_ROOMS = 81
         }
 
         /** DataType enum. */
@@ -100,6 +115,12 @@ export namespace vacuum {
 
             /** DATA_SAFETY_STATUS value */
             DATA_SAFETY_STATUS = 17,
+
+            /** DATA_ROBOT_SETTINGS value */
+            DATA_ROBOT_SETTINGS = 18,
+
+            /** DATA_ROOMS value */
+            DATA_ROOMS = 19,
 
             /** DATA_MAP value */
             DATA_MAP = 32,
@@ -130,6 +151,9 @@ export namespace vacuum {
 
             /** DATA_CLEANED_AREA value */
             DATA_CLEANED_AREA = 66,
+
+            /** DATA_ASSISTANT_STATUS value */
+            DATA_ASSISTANT_STATUS = 80,
 
             /** DATA_REPLY value */
             DATA_REPLY = 128
@@ -1148,6 +1172,696 @@ export namespace vacuum {
         }
 
         /**
+         * Properties of a RobotSettings.
+         * @deprecated Use vacuum.v1.RobotSettings.$Properties instead.
+         */
+        interface IRobotSettings extends vacuum.v1.RobotSettings.$Properties {
+        }
+
+        /** Represents a RobotSettings. */
+        class RobotSettings {
+
+            /**
+             * Constructs a new RobotSettings.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: vacuum.v1.RobotSettings.$Properties);
+
+            /** Unknown fields preserved while decoding when enabled */
+            $unknowns?: Uint8Array[];
+
+            /** RobotSettings cleaningSpeed. */
+            cleaningSpeed: number;
+
+            /** RobotSettings manualSpeed. */
+            manualSpeed: number;
+
+            /** RobotSettings rowSpacing. */
+            rowSpacing: number;
+
+            /** RobotSettings rowAngleAuto. */
+            rowAngleAuto: boolean;
+
+            /** RobotSettings rowAngle. */
+            rowAngle: number;
+
+            /** RobotSettings limits. */
+            limits?: (vacuum.v1.RobotSettings.Limits.$Properties|null);
+
+            /** RobotSettings manualTurnSpeed. */
+            manualTurnSpeed: number;
+
+            /**
+             * Creates a new RobotSettings instance using the specified properties.
+             * @param [properties] Properties to set
+             * @returns RobotSettings instance
+             */
+            static create(properties: vacuum.v1.RobotSettings.$Shape): vacuum.v1.RobotSettings & vacuum.v1.RobotSettings.$Shape;
+            static create(properties?: vacuum.v1.RobotSettings.$Properties): vacuum.v1.RobotSettings;
+
+            /**
+             * Encodes the specified RobotSettings message. Does not implicitly {@link vacuum.v1.RobotSettings.verify|verify} messages.
+             * @param message RobotSettings message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            static encode(message: vacuum.v1.RobotSettings.$Properties, writer?: $protobuf.Writer): $protobuf.Writer;
+
+            /**
+             * Decodes a RobotSettings message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns {vacuum.v1.RobotSettings & vacuum.v1.RobotSettings.$Shape} RobotSettings
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): vacuum.v1.RobotSettings & vacuum.v1.RobotSettings.$Shape;
+
+            /**
+             * Verifies a RobotSettings message.
+             * @param message Plain object to verify
+             * @returns `null` if valid, otherwise the reason why it is not
+             */
+            static verify(message: { [k: string]: any }): (string|null);
+
+            /**
+             * Creates a RobotSettings message from a plain object. Also converts values to their respective internal types.
+             * @param object Plain object
+             * @returns RobotSettings
+             */
+            static fromObject(object: { [k: string]: any }): vacuum.v1.RobotSettings;
+
+            /**
+             * Creates a plain object from a RobotSettings message. Also converts values to other types if specified.
+             * @param message RobotSettings
+             * @param [options] Conversion options
+             * @returns Plain object
+             */
+            static toObject(message: vacuum.v1.RobotSettings, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+            /**
+             * Converts this RobotSettings to JSON.
+             * @returns JSON object
+             */
+            toJSON(): { [k: string]: any };
+        }
+
+        namespace RobotSettings {
+
+            /** Properties of a RobotSettings. */
+            interface $Properties {
+
+                /** RobotSettings cleaningSpeed */
+                cleaningSpeed?: (number|null);
+
+                /** RobotSettings manualSpeed */
+                manualSpeed?: (number|null);
+
+                /** RobotSettings rowSpacing */
+                rowSpacing?: (number|null);
+
+                /** RobotSettings rowAngleAuto */
+                rowAngleAuto?: (boolean|null);
+
+                /** RobotSettings rowAngle */
+                rowAngle?: (number|null);
+
+                /** RobotSettings limits */
+                limits?: (vacuum.v1.RobotSettings.Limits.$Properties|null);
+
+                /** RobotSettings manualTurnSpeed */
+                manualTurnSpeed?: (number|null);
+
+                /** Unknown fields preserved while decoding when enabled */
+                $unknowns?: Uint8Array[];
+            }
+
+            /** Shape of a RobotSettings. */
+            type $Shape = vacuum.v1.RobotSettings.$Properties;
+
+            /**
+             * Properties of a Limits.
+             * @deprecated Use vacuum.v1.RobotSettings.Limits.$Properties instead.
+             */
+            interface ILimits extends vacuum.v1.RobotSettings.Limits.$Properties {
+            }
+
+            /** Represents a Limits. */
+            class Limits {
+
+                /**
+                 * Constructs a new Limits.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: vacuum.v1.RobotSettings.Limits.$Properties);
+
+                /** Unknown fields preserved while decoding when enabled */
+                $unknowns?: Uint8Array[];
+
+                /** Limits cleaningSpeedMin. */
+                cleaningSpeedMin: number;
+
+                /** Limits cleaningSpeedMax. */
+                cleaningSpeedMax: number;
+
+                /** Limits manualSpeedMin. */
+                manualSpeedMin: number;
+
+                /** Limits manualSpeedMax. */
+                manualSpeedMax: number;
+
+                /** Limits rowSpacingMin. */
+                rowSpacingMin: number;
+
+                /** Limits rowSpacingMax. */
+                rowSpacingMax: number;
+
+                /** Limits rowSpacingStep. */
+                rowSpacingStep: number;
+
+                /**
+                 * Creates a new Limits instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns Limits instance
+                 */
+                static create(properties: vacuum.v1.RobotSettings.Limits.$Shape): vacuum.v1.RobotSettings.Limits & vacuum.v1.RobotSettings.Limits.$Shape;
+                static create(properties?: vacuum.v1.RobotSettings.Limits.$Properties): vacuum.v1.RobotSettings.Limits;
+
+                /**
+                 * Encodes the specified Limits message. Does not implicitly {@link vacuum.v1.RobotSettings.Limits.verify|verify} messages.
+                 * @param message Limits message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                static encode(message: vacuum.v1.RobotSettings.Limits.$Properties, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a Limits message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns {vacuum.v1.RobotSettings.Limits & vacuum.v1.RobotSettings.Limits.$Shape} Limits
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): vacuum.v1.RobotSettings.Limits & vacuum.v1.RobotSettings.Limits.$Shape;
+
+                /**
+                 * Verifies a Limits message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a Limits message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns Limits
+                 */
+                static fromObject(object: { [k: string]: any }): vacuum.v1.RobotSettings.Limits;
+
+                /**
+                 * Creates a plain object from a Limits message. Also converts values to other types if specified.
+                 * @param message Limits
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                static toObject(message: vacuum.v1.RobotSettings.Limits, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this Limits to JSON.
+                 * @returns JSON object
+                 */
+                toJSON(): { [k: string]: any };
+            }
+
+            namespace Limits {
+
+                /** Properties of a Limits. */
+                interface $Properties {
+
+                    /** Limits cleaningSpeedMin */
+                    cleaningSpeedMin?: (number|null);
+
+                    /** Limits cleaningSpeedMax */
+                    cleaningSpeedMax?: (number|null);
+
+                    /** Limits manualSpeedMin */
+                    manualSpeedMin?: (number|null);
+
+                    /** Limits manualSpeedMax */
+                    manualSpeedMax?: (number|null);
+
+                    /** Limits rowSpacingMin */
+                    rowSpacingMin?: (number|null);
+
+                    /** Limits rowSpacingMax */
+                    rowSpacingMax?: (number|null);
+
+                    /** Limits rowSpacingStep */
+                    rowSpacingStep?: (number|null);
+
+                    /** Unknown fields preserved while decoding when enabled */
+                    $unknowns?: Uint8Array[];
+                }
+
+                /** Shape of a Limits. */
+                type $Shape = vacuum.v1.RobotSettings.Limits.$Properties;
+            }
+        }
+
+        /**
+         * Properties of a Rooms.
+         * @deprecated Use vacuum.v1.Rooms.$Properties instead.
+         */
+        interface IRooms extends vacuum.v1.Rooms.$Properties {
+        }
+
+        /** Represents a Rooms. */
+        class Rooms {
+
+            /**
+             * Constructs a new Rooms.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: vacuum.v1.Rooms.$Properties);
+
+            /** Unknown fields preserved while decoding when enabled */
+            $unknowns?: Uint8Array[];
+
+            /** Rooms rooms. */
+            rooms: vacuum.v1.Rooms.Room.$Properties[];
+
+            /** Rooms mapName. */
+            mapName: string;
+
+            /**
+             * Creates a new Rooms instance using the specified properties.
+             * @param [properties] Properties to set
+             * @returns Rooms instance
+             */
+            static create(properties: vacuum.v1.Rooms.$Shape): vacuum.v1.Rooms & vacuum.v1.Rooms.$Shape;
+            static create(properties?: vacuum.v1.Rooms.$Properties): vacuum.v1.Rooms;
+
+            /**
+             * Encodes the specified Rooms message. Does not implicitly {@link vacuum.v1.Rooms.verify|verify} messages.
+             * @param message Rooms message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            static encode(message: vacuum.v1.Rooms.$Properties, writer?: $protobuf.Writer): $protobuf.Writer;
+
+            /**
+             * Decodes a Rooms message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns {vacuum.v1.Rooms & vacuum.v1.Rooms.$Shape} Rooms
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): vacuum.v1.Rooms & vacuum.v1.Rooms.$Shape;
+
+            /**
+             * Verifies a Rooms message.
+             * @param message Plain object to verify
+             * @returns `null` if valid, otherwise the reason why it is not
+             */
+            static verify(message: { [k: string]: any }): (string|null);
+
+            /**
+             * Creates a Rooms message from a plain object. Also converts values to their respective internal types.
+             * @param object Plain object
+             * @returns Rooms
+             */
+            static fromObject(object: { [k: string]: any }): vacuum.v1.Rooms;
+
+            /**
+             * Creates a plain object from a Rooms message. Also converts values to other types if specified.
+             * @param message Rooms
+             * @param [options] Conversion options
+             * @returns Plain object
+             */
+            static toObject(message: vacuum.v1.Rooms, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+            /**
+             * Converts this Rooms to JSON.
+             * @returns JSON object
+             */
+            toJSON(): { [k: string]: any };
+        }
+
+        namespace Rooms {
+
+            /** Properties of a Rooms. */
+            interface $Properties {
+
+                /** Rooms rooms */
+                rooms?: (vacuum.v1.Rooms.Room.$Properties[]|null);
+
+                /** Rooms mapName */
+                mapName?: (string|null);
+
+                /** Unknown fields preserved while decoding when enabled */
+                $unknowns?: Uint8Array[];
+            }
+
+            /** Shape of a Rooms. */
+            type $Shape = vacuum.v1.Rooms.$Properties;
+
+            /**
+             * Properties of a Room.
+             * @deprecated Use vacuum.v1.Rooms.Room.$Properties instead.
+             */
+            interface IRoom extends vacuum.v1.Rooms.Room.$Properties {
+            }
+
+            /** Represents a Room. */
+            class Room {
+
+                /**
+                 * Constructs a new Room.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: vacuum.v1.Rooms.Room.$Properties);
+
+                /** Unknown fields preserved while decoding when enabled */
+                $unknowns?: Uint8Array[];
+
+                /** Room name. */
+                name: string;
+
+                /** Room pointsCm. */
+                pointsCm: number[];
+
+                /** Room xCm. */
+                xCm: number;
+
+                /** Room yCm. */
+                yCm: number;
+
+                /** Room area. */
+                area: number;
+
+                /**
+                 * Creates a new Room instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns Room instance
+                 */
+                static create(properties: vacuum.v1.Rooms.Room.$Shape): vacuum.v1.Rooms.Room & vacuum.v1.Rooms.Room.$Shape;
+                static create(properties?: vacuum.v1.Rooms.Room.$Properties): vacuum.v1.Rooms.Room;
+
+                /**
+                 * Encodes the specified Room message. Does not implicitly {@link vacuum.v1.Rooms.Room.verify|verify} messages.
+                 * @param message Room message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                static encode(message: vacuum.v1.Rooms.Room.$Properties, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a Room message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns {vacuum.v1.Rooms.Room & vacuum.v1.Rooms.Room.$Shape} Room
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): vacuum.v1.Rooms.Room & vacuum.v1.Rooms.Room.$Shape;
+
+                /**
+                 * Verifies a Room message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a Room message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns Room
+                 */
+                static fromObject(object: { [k: string]: any }): vacuum.v1.Rooms.Room;
+
+                /**
+                 * Creates a plain object from a Room message. Also converts values to other types if specified.
+                 * @param message Room
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                static toObject(message: vacuum.v1.Rooms.Room, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this Room to JSON.
+                 * @returns JSON object
+                 */
+                toJSON(): { [k: string]: any };
+            }
+
+            namespace Room {
+
+                /** Properties of a Room. */
+                interface $Properties {
+
+                    /** Room name */
+                    name?: (string|null);
+
+                    /** Room pointsCm */
+                    pointsCm?: (number[]|null);
+
+                    /** Room xCm */
+                    xCm?: (number|null);
+
+                    /** Room yCm */
+                    yCm?: (number|null);
+
+                    /** Room area */
+                    area?: (number|null);
+
+                    /** Unknown fields preserved while decoding when enabled */
+                    $unknowns?: Uint8Array[];
+                }
+
+                /** Shape of a Room. */
+                type $Shape = vacuum.v1.Rooms.Room.$Properties;
+            }
+        }
+
+        /**
+         * Properties of an AssistantStatus.
+         * @deprecated Use vacuum.v1.AssistantStatus.$Properties instead.
+         */
+        interface IAssistantStatus extends vacuum.v1.AssistantStatus.$Properties {
+        }
+
+        /** Represents an AssistantStatus. */
+        class AssistantStatus {
+
+            /**
+             * Constructs a new AssistantStatus.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: vacuum.v1.AssistantStatus.$Properties);
+
+            /** Unknown fields preserved while decoding when enabled */
+            $unknowns?: Uint8Array[];
+
+            /** AssistantStatus busy. */
+            busy: boolean;
+
+            /** AssistantStatus conversation. */
+            conversation: string;
+
+            /** AssistantStatus doing. */
+            doing: string;
+
+            /**
+             * Creates a new AssistantStatus instance using the specified properties.
+             * @param [properties] Properties to set
+             * @returns AssistantStatus instance
+             */
+            static create(properties: vacuum.v1.AssistantStatus.$Shape): vacuum.v1.AssistantStatus & vacuum.v1.AssistantStatus.$Shape;
+            static create(properties?: vacuum.v1.AssistantStatus.$Properties): vacuum.v1.AssistantStatus;
+
+            /**
+             * Encodes the specified AssistantStatus message. Does not implicitly {@link vacuum.v1.AssistantStatus.verify|verify} messages.
+             * @param message AssistantStatus message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            static encode(message: vacuum.v1.AssistantStatus.$Properties, writer?: $protobuf.Writer): $protobuf.Writer;
+
+            /**
+             * Decodes an AssistantStatus message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns {vacuum.v1.AssistantStatus & vacuum.v1.AssistantStatus.$Shape} AssistantStatus
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): vacuum.v1.AssistantStatus & vacuum.v1.AssistantStatus.$Shape;
+
+            /**
+             * Verifies an AssistantStatus message.
+             * @param message Plain object to verify
+             * @returns `null` if valid, otherwise the reason why it is not
+             */
+            static verify(message: { [k: string]: any }): (string|null);
+
+            /**
+             * Creates an AssistantStatus message from a plain object. Also converts values to their respective internal types.
+             * @param object Plain object
+             * @returns AssistantStatus
+             */
+            static fromObject(object: { [k: string]: any }): vacuum.v1.AssistantStatus;
+
+            /**
+             * Creates a plain object from an AssistantStatus message. Also converts values to other types if specified.
+             * @param message AssistantStatus
+             * @param [options] Conversion options
+             * @returns Plain object
+             */
+            static toObject(message: vacuum.v1.AssistantStatus, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+            /**
+             * Converts this AssistantStatus to JSON.
+             * @returns JSON object
+             */
+            toJSON(): { [k: string]: any };
+        }
+
+        namespace AssistantStatus {
+
+            /** Properties of an AssistantStatus. */
+            interface $Properties {
+
+                /** AssistantStatus busy */
+                busy?: (boolean|null);
+
+                /** AssistantStatus conversation */
+                conversation?: (string|null);
+
+                /** AssistantStatus doing */
+                doing?: (string|null);
+
+                /** Unknown fields preserved while decoding when enabled */
+                $unknowns?: Uint8Array[];
+            }
+
+            /** Shape of an AssistantStatus. */
+            type $Shape = vacuum.v1.AssistantStatus.$Properties;
+        }
+
+        /**
+         * Properties of an AssistantAnswer.
+         * @deprecated Use vacuum.v1.AssistantAnswer.$Properties instead.
+         */
+        interface IAssistantAnswer extends vacuum.v1.AssistantAnswer.$Properties {
+        }
+
+        /** Represents an AssistantAnswer. */
+        class AssistantAnswer {
+
+            /**
+             * Constructs a new AssistantAnswer.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: vacuum.v1.AssistantAnswer.$Properties);
+
+            /** Unknown fields preserved while decoding when enabled */
+            $unknowns?: Uint8Array[];
+
+            /** AssistantAnswer text. */
+            text: string;
+
+            /** AssistantAnswer toolsUsed. */
+            toolsUsed: string[];
+
+            /** AssistantAnswer pictureJpeg. */
+            pictureJpeg: Uint8Array;
+
+            /** AssistantAnswer markCm. */
+            markCm: number[];
+
+            /**
+             * Creates a new AssistantAnswer instance using the specified properties.
+             * @param [properties] Properties to set
+             * @returns AssistantAnswer instance
+             */
+            static create(properties: vacuum.v1.AssistantAnswer.$Shape): vacuum.v1.AssistantAnswer & vacuum.v1.AssistantAnswer.$Shape;
+            static create(properties?: vacuum.v1.AssistantAnswer.$Properties): vacuum.v1.AssistantAnswer;
+
+            /**
+             * Encodes the specified AssistantAnswer message. Does not implicitly {@link vacuum.v1.AssistantAnswer.verify|verify} messages.
+             * @param message AssistantAnswer message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            static encode(message: vacuum.v1.AssistantAnswer.$Properties, writer?: $protobuf.Writer): $protobuf.Writer;
+
+            /**
+             * Decodes an AssistantAnswer message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns {vacuum.v1.AssistantAnswer & vacuum.v1.AssistantAnswer.$Shape} AssistantAnswer
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): vacuum.v1.AssistantAnswer & vacuum.v1.AssistantAnswer.$Shape;
+
+            /**
+             * Verifies an AssistantAnswer message.
+             * @param message Plain object to verify
+             * @returns `null` if valid, otherwise the reason why it is not
+             */
+            static verify(message: { [k: string]: any }): (string|null);
+
+            /**
+             * Creates an AssistantAnswer message from a plain object. Also converts values to their respective internal types.
+             * @param object Plain object
+             * @returns AssistantAnswer
+             */
+            static fromObject(object: { [k: string]: any }): vacuum.v1.AssistantAnswer;
+
+            /**
+             * Creates a plain object from an AssistantAnswer message. Also converts values to other types if specified.
+             * @param message AssistantAnswer
+             * @param [options] Conversion options
+             * @returns Plain object
+             */
+            static toObject(message: vacuum.v1.AssistantAnswer, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+            /**
+             * Converts this AssistantAnswer to JSON.
+             * @returns JSON object
+             */
+            toJSON(): { [k: string]: any };
+        }
+
+        namespace AssistantAnswer {
+
+            /** Properties of an AssistantAnswer. */
+            interface $Properties {
+
+                /** AssistantAnswer text */
+                text?: (string|null);
+
+                /** AssistantAnswer toolsUsed */
+                toolsUsed?: (string[]|null);
+
+                /** AssistantAnswer pictureJpeg */
+                pictureJpeg?: (Uint8Array|null);
+
+                /** AssistantAnswer markCm */
+                markCm?: (number[]|null);
+
+                /** Unknown fields preserved while decoding when enabled */
+                $unknowns?: Uint8Array[];
+            }
+
+            /** Shape of an AssistantAnswer. */
+            type $Shape = vacuum.v1.AssistantAnswer.$Properties;
+        }
+
+        /**
          * Properties of a RequestId.
          * @deprecated Use vacuum.v1.RequestId.$Properties instead.
          */
@@ -1643,6 +2357,507 @@ export namespace vacuum {
         }
 
         /**
+         * Properties of a SetRobotSettings.
+         * @deprecated Use vacuum.v1.SetRobotSettings.$Properties instead.
+         */
+        interface ISetRobotSettings extends vacuum.v1.SetRobotSettings.$Properties {
+        }
+
+        /** Represents a SetRobotSettings. */
+        class SetRobotSettings {
+
+            /**
+             * Constructs a new SetRobotSettings.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: vacuum.v1.SetRobotSettings.$Properties);
+
+            /** Unknown fields preserved while decoding when enabled */
+            $unknowns?: Uint8Array[];
+
+            /** SetRobotSettings requestId. */
+            requestId: number;
+
+            /** SetRobotSettings settings. */
+            settings?: (vacuum.v1.RobotSettings.$Properties|null);
+
+            /**
+             * Creates a new SetRobotSettings instance using the specified properties.
+             * @param [properties] Properties to set
+             * @returns SetRobotSettings instance
+             */
+            static create(properties: vacuum.v1.SetRobotSettings.$Shape): vacuum.v1.SetRobotSettings & vacuum.v1.SetRobotSettings.$Shape;
+            static create(properties?: vacuum.v1.SetRobotSettings.$Properties): vacuum.v1.SetRobotSettings;
+
+            /**
+             * Encodes the specified SetRobotSettings message. Does not implicitly {@link vacuum.v1.SetRobotSettings.verify|verify} messages.
+             * @param message SetRobotSettings message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            static encode(message: vacuum.v1.SetRobotSettings.$Properties, writer?: $protobuf.Writer): $protobuf.Writer;
+
+            /**
+             * Decodes a SetRobotSettings message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns {vacuum.v1.SetRobotSettings & vacuum.v1.SetRobotSettings.$Shape} SetRobotSettings
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): vacuum.v1.SetRobotSettings & vacuum.v1.SetRobotSettings.$Shape;
+
+            /**
+             * Verifies a SetRobotSettings message.
+             * @param message Plain object to verify
+             * @returns `null` if valid, otherwise the reason why it is not
+             */
+            static verify(message: { [k: string]: any }): (string|null);
+
+            /**
+             * Creates a SetRobotSettings message from a plain object. Also converts values to their respective internal types.
+             * @param object Plain object
+             * @returns SetRobotSettings
+             */
+            static fromObject(object: { [k: string]: any }): vacuum.v1.SetRobotSettings;
+
+            /**
+             * Creates a plain object from a SetRobotSettings message. Also converts values to other types if specified.
+             * @param message SetRobotSettings
+             * @param [options] Conversion options
+             * @returns Plain object
+             */
+            static toObject(message: vacuum.v1.SetRobotSettings, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+            /**
+             * Converts this SetRobotSettings to JSON.
+             * @returns JSON object
+             */
+            toJSON(): { [k: string]: any };
+        }
+
+        namespace SetRobotSettings {
+
+            /** Properties of a SetRobotSettings. */
+            interface $Properties {
+
+                /** SetRobotSettings requestId */
+                requestId?: (number|null);
+
+                /** SetRobotSettings settings */
+                settings?: (vacuum.v1.RobotSettings.$Properties|null);
+
+                /** Unknown fields preserved while decoding when enabled */
+                $unknowns?: Uint8Array[];
+            }
+
+            /** Shape of a SetRobotSettings. */
+            type $Shape = vacuum.v1.SetRobotSettings.$Properties;
+        }
+
+        /**
+         * Properties of a FindRooms.
+         * @deprecated Use vacuum.v1.FindRooms.$Properties instead.
+         */
+        interface IFindRooms extends vacuum.v1.FindRooms.$Properties {
+        }
+
+        /** Represents a FindRooms. */
+        class FindRooms {
+
+            /**
+             * Constructs a new FindRooms.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: vacuum.v1.FindRooms.$Properties);
+
+            /** Unknown fields preserved while decoding when enabled */
+            $unknowns?: Uint8Array[];
+
+            /** FindRooms requestId. */
+            requestId: number;
+
+            /**
+             * Creates a new FindRooms instance using the specified properties.
+             * @param [properties] Properties to set
+             * @returns FindRooms instance
+             */
+            static create(properties: vacuum.v1.FindRooms.$Shape): vacuum.v1.FindRooms & vacuum.v1.FindRooms.$Shape;
+            static create(properties?: vacuum.v1.FindRooms.$Properties): vacuum.v1.FindRooms;
+
+            /**
+             * Encodes the specified FindRooms message. Does not implicitly {@link vacuum.v1.FindRooms.verify|verify} messages.
+             * @param message FindRooms message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            static encode(message: vacuum.v1.FindRooms.$Properties, writer?: $protobuf.Writer): $protobuf.Writer;
+
+            /**
+             * Decodes a FindRooms message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns {vacuum.v1.FindRooms & vacuum.v1.FindRooms.$Shape} FindRooms
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): vacuum.v1.FindRooms & vacuum.v1.FindRooms.$Shape;
+
+            /**
+             * Verifies a FindRooms message.
+             * @param message Plain object to verify
+             * @returns `null` if valid, otherwise the reason why it is not
+             */
+            static verify(message: { [k: string]: any }): (string|null);
+
+            /**
+             * Creates a FindRooms message from a plain object. Also converts values to their respective internal types.
+             * @param object Plain object
+             * @returns FindRooms
+             */
+            static fromObject(object: { [k: string]: any }): vacuum.v1.FindRooms;
+
+            /**
+             * Creates a plain object from a FindRooms message. Also converts values to other types if specified.
+             * @param message FindRooms
+             * @param [options] Conversion options
+             * @returns Plain object
+             */
+            static toObject(message: vacuum.v1.FindRooms, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+            /**
+             * Converts this FindRooms to JSON.
+             * @returns JSON object
+             */
+            toJSON(): { [k: string]: any };
+        }
+
+        namespace FindRooms {
+
+            /** Properties of a FindRooms. */
+            interface $Properties {
+
+                /** FindRooms requestId */
+                requestId?: (number|null);
+
+                /** Unknown fields preserved while decoding when enabled */
+                $unknowns?: Uint8Array[];
+            }
+
+            /** Shape of a FindRooms. */
+            type $Shape = vacuum.v1.FindRooms.$Properties;
+        }
+
+        /**
+         * Properties of a SetRooms.
+         * @deprecated Use vacuum.v1.SetRooms.$Properties instead.
+         */
+        interface ISetRooms extends vacuum.v1.SetRooms.$Properties {
+        }
+
+        /** Represents a SetRooms. */
+        class SetRooms {
+
+            /**
+             * Constructs a new SetRooms.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: vacuum.v1.SetRooms.$Properties);
+
+            /** Unknown fields preserved while decoding when enabled */
+            $unknowns?: Uint8Array[];
+
+            /** SetRooms requestId. */
+            requestId: number;
+
+            /** SetRooms mapName. */
+            mapName: string;
+
+            /** SetRooms rooms. */
+            rooms: vacuum.v1.Rooms.Room.$Properties[];
+
+            /**
+             * Creates a new SetRooms instance using the specified properties.
+             * @param [properties] Properties to set
+             * @returns SetRooms instance
+             */
+            static create(properties: vacuum.v1.SetRooms.$Shape): vacuum.v1.SetRooms & vacuum.v1.SetRooms.$Shape;
+            static create(properties?: vacuum.v1.SetRooms.$Properties): vacuum.v1.SetRooms;
+
+            /**
+             * Encodes the specified SetRooms message. Does not implicitly {@link vacuum.v1.SetRooms.verify|verify} messages.
+             * @param message SetRooms message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            static encode(message: vacuum.v1.SetRooms.$Properties, writer?: $protobuf.Writer): $protobuf.Writer;
+
+            /**
+             * Decodes a SetRooms message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns {vacuum.v1.SetRooms & vacuum.v1.SetRooms.$Shape} SetRooms
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): vacuum.v1.SetRooms & vacuum.v1.SetRooms.$Shape;
+
+            /**
+             * Verifies a SetRooms message.
+             * @param message Plain object to verify
+             * @returns `null` if valid, otherwise the reason why it is not
+             */
+            static verify(message: { [k: string]: any }): (string|null);
+
+            /**
+             * Creates a SetRooms message from a plain object. Also converts values to their respective internal types.
+             * @param object Plain object
+             * @returns SetRooms
+             */
+            static fromObject(object: { [k: string]: any }): vacuum.v1.SetRooms;
+
+            /**
+             * Creates a plain object from a SetRooms message. Also converts values to other types if specified.
+             * @param message SetRooms
+             * @param [options] Conversion options
+             * @returns Plain object
+             */
+            static toObject(message: vacuum.v1.SetRooms, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+            /**
+             * Converts this SetRooms to JSON.
+             * @returns JSON object
+             */
+            toJSON(): { [k: string]: any };
+        }
+
+        namespace SetRooms {
+
+            /** Properties of a SetRooms. */
+            interface $Properties {
+
+                /** SetRooms requestId */
+                requestId?: (number|null);
+
+                /** SetRooms mapName */
+                mapName?: (string|null);
+
+                /** SetRooms rooms */
+                rooms?: (vacuum.v1.Rooms.Room.$Properties[]|null);
+
+                /** Unknown fields preserved while decoding when enabled */
+                $unknowns?: Uint8Array[];
+            }
+
+            /** Shape of a SetRooms. */
+            type $Shape = vacuum.v1.SetRooms.$Properties;
+        }
+
+        /**
+         * Properties of an AskAssistant.
+         * @deprecated Use vacuum.v1.AskAssistant.$Properties instead.
+         */
+        interface IAskAssistant extends vacuum.v1.AskAssistant.$Properties {
+        }
+
+        /** Represents an AskAssistant. */
+        class AskAssistant {
+
+            /**
+             * Constructs a new AskAssistant.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: vacuum.v1.AskAssistant.$Properties);
+
+            /** Unknown fields preserved while decoding when enabled */
+            $unknowns?: Uint8Array[];
+
+            /** AskAssistant requestId. */
+            requestId: number;
+
+            /** AskAssistant conversation. */
+            conversation: string;
+
+            /** AskAssistant text. */
+            text: string;
+
+            /**
+             * Creates a new AskAssistant instance using the specified properties.
+             * @param [properties] Properties to set
+             * @returns AskAssistant instance
+             */
+            static create(properties: vacuum.v1.AskAssistant.$Shape): vacuum.v1.AskAssistant & vacuum.v1.AskAssistant.$Shape;
+            static create(properties?: vacuum.v1.AskAssistant.$Properties): vacuum.v1.AskAssistant;
+
+            /**
+             * Encodes the specified AskAssistant message. Does not implicitly {@link vacuum.v1.AskAssistant.verify|verify} messages.
+             * @param message AskAssistant message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            static encode(message: vacuum.v1.AskAssistant.$Properties, writer?: $protobuf.Writer): $protobuf.Writer;
+
+            /**
+             * Decodes an AskAssistant message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns {vacuum.v1.AskAssistant & vacuum.v1.AskAssistant.$Shape} AskAssistant
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): vacuum.v1.AskAssistant & vacuum.v1.AskAssistant.$Shape;
+
+            /**
+             * Verifies an AskAssistant message.
+             * @param message Plain object to verify
+             * @returns `null` if valid, otherwise the reason why it is not
+             */
+            static verify(message: { [k: string]: any }): (string|null);
+
+            /**
+             * Creates an AskAssistant message from a plain object. Also converts values to their respective internal types.
+             * @param object Plain object
+             * @returns AskAssistant
+             */
+            static fromObject(object: { [k: string]: any }): vacuum.v1.AskAssistant;
+
+            /**
+             * Creates a plain object from an AskAssistant message. Also converts values to other types if specified.
+             * @param message AskAssistant
+             * @param [options] Conversion options
+             * @returns Plain object
+             */
+            static toObject(message: vacuum.v1.AskAssistant, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+            /**
+             * Converts this AskAssistant to JSON.
+             * @returns JSON object
+             */
+            toJSON(): { [k: string]: any };
+        }
+
+        namespace AskAssistant {
+
+            /** Properties of an AskAssistant. */
+            interface $Properties {
+
+                /** AskAssistant requestId */
+                requestId?: (number|null);
+
+                /** AskAssistant conversation */
+                conversation?: (string|null);
+
+                /** AskAssistant text */
+                text?: (string|null);
+
+                /** Unknown fields preserved while decoding when enabled */
+                $unknowns?: Uint8Array[];
+            }
+
+            /** Shape of an AskAssistant. */
+            type $Shape = vacuum.v1.AskAssistant.$Properties;
+        }
+
+        /**
+         * Properties of a NameRooms.
+         * @deprecated Use vacuum.v1.NameRooms.$Properties instead.
+         */
+        interface INameRooms extends vacuum.v1.NameRooms.$Properties {
+        }
+
+        /** Represents a NameRooms. */
+        class NameRooms {
+
+            /**
+             * Constructs a new NameRooms.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: vacuum.v1.NameRooms.$Properties);
+
+            /** Unknown fields preserved while decoding when enabled */
+            $unknowns?: Uint8Array[];
+
+            /** NameRooms requestId. */
+            requestId: number;
+
+            /** NameRooms rooms. */
+            rooms: vacuum.v1.Rooms.Room.$Properties[];
+
+            /**
+             * Creates a new NameRooms instance using the specified properties.
+             * @param [properties] Properties to set
+             * @returns NameRooms instance
+             */
+            static create(properties: vacuum.v1.NameRooms.$Shape): vacuum.v1.NameRooms & vacuum.v1.NameRooms.$Shape;
+            static create(properties?: vacuum.v1.NameRooms.$Properties): vacuum.v1.NameRooms;
+
+            /**
+             * Encodes the specified NameRooms message. Does not implicitly {@link vacuum.v1.NameRooms.verify|verify} messages.
+             * @param message NameRooms message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            static encode(message: vacuum.v1.NameRooms.$Properties, writer?: $protobuf.Writer): $protobuf.Writer;
+
+            /**
+             * Decodes a NameRooms message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns {vacuum.v1.NameRooms & vacuum.v1.NameRooms.$Shape} NameRooms
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): vacuum.v1.NameRooms & vacuum.v1.NameRooms.$Shape;
+
+            /**
+             * Verifies a NameRooms message.
+             * @param message Plain object to verify
+             * @returns `null` if valid, otherwise the reason why it is not
+             */
+            static verify(message: { [k: string]: any }): (string|null);
+
+            /**
+             * Creates a NameRooms message from a plain object. Also converts values to their respective internal types.
+             * @param object Plain object
+             * @returns NameRooms
+             */
+            static fromObject(object: { [k: string]: any }): vacuum.v1.NameRooms;
+
+            /**
+             * Creates a plain object from a NameRooms message. Also converts values to other types if specified.
+             * @param message NameRooms
+             * @param [options] Conversion options
+             * @returns Plain object
+             */
+            static toObject(message: vacuum.v1.NameRooms, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+            /**
+             * Converts this NameRooms to JSON.
+             * @returns JSON object
+             */
+            toJSON(): { [k: string]: any };
+        }
+
+        namespace NameRooms {
+
+            /** Properties of a NameRooms. */
+            interface $Properties {
+
+                /** NameRooms requestId */
+                requestId?: (number|null);
+
+                /** NameRooms rooms */
+                rooms?: (vacuum.v1.Rooms.Room.$Properties[]|null);
+
+                /** Unknown fields preserved while decoding when enabled */
+                $unknowns?: Uint8Array[];
+            }
+
+            /** Shape of a NameRooms. */
+            type $Shape = vacuum.v1.NameRooms.$Properties;
+        }
+
+        /**
          * Properties of a GoTo.
          * @deprecated Use vacuum.v1.GoTo.$Properties instead.
          */
@@ -2006,6 +3221,12 @@ export namespace vacuum {
             /** Reply jobId. */
             jobId: number;
 
+            /** Reply answer. */
+            answer?: (vacuum.v1.AssistantAnswer.$Properties|null);
+
+            /** Reply rooms. */
+            rooms?: (vacuum.v1.Rooms.$Properties|null);
+
             /**
              * Creates a new Reply instance using the specified properties.
              * @param [properties] Properties to set
@@ -2095,6 +3316,12 @@ export namespace vacuum {
 
                 /** Reply jobId */
                 jobId?: (number|null);
+
+                /** Reply answer */
+                answer?: (vacuum.v1.AssistantAnswer.$Properties|null);
+
+                /** Reply rooms */
+                rooms?: (vacuum.v1.Rooms.$Properties|null);
 
                 /** Unknown fields preserved while decoding when enabled */
                 $unknowns?: Uint8Array[];
@@ -2310,6 +3537,9 @@ export namespace vacuum {
             /** CleaningJob returnToDock. */
             returnToDock: vacuum.v1.CleaningJob.Option;
 
+            /** CleaningJob room. */
+            room: string;
+
             /**
              * Creates a new CleaningJob instance using the specified properties.
              * @param [properties] Properties to set
@@ -2397,6 +3627,9 @@ export namespace vacuum {
                 /** CleaningJob returnToDock */
                 returnToDock?: (vacuum.v1.CleaningJob.Option|null);
 
+                /** CleaningJob room */
+                room?: (string|null);
+
                 /** Unknown fields preserved while decoding when enabled */
                 $unknowns?: Uint8Array[];
             }
@@ -2417,7 +3650,10 @@ export namespace vacuum {
                 WHAT_SPOT = 2,
 
                 /** WHAT_PLAN value */
-                WHAT_PLAN = 3
+                WHAT_PLAN = 3,
+
+                /** WHAT_ROOM value */
+                WHAT_ROOM = 4
             }
 
             /** Option enum. */

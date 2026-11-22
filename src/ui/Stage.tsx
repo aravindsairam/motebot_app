@@ -3,7 +3,8 @@
 // glides to the nearest corner (a flick counts in its direction). The top corners sit below the
 // top row of labels, and while the joystick shows (manual and mapping modes) it keeps the bottom
 // right, so a window there shows bottom left. While a point is being picked on the map, a clean is
-// being chosen or the no-go zones are being changed, the map is large and the window is out of the way.
+// being chosen, or the no-go zones or the rooms are being changed, the map is large and the window
+// is out of the way.
 //
 // The window follows the finger on the UI thread (shared values and an animated style), not
 // through React, so it does not lag. Both views keep their place in the tree whichever is small:
@@ -16,6 +17,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } fr
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { useChoice } from '../robot/cleaningStore';
+import { useRoomEdit } from '../robot/roomEditStore';
 import { useTrip } from '../robot/tripStore';
 import { useZoneEdit } from '../robot/zones';
 import { CameraView } from './CameraView';
@@ -40,7 +42,8 @@ export function Stage({ joystick }: { joystick: { shown: boolean; enabled: boole
   const pickingPoint = useTrip((s) => s.picking);
   const choosing = useChoice((s) => s.open);
   const editingZones = useZoneEdit((s) => s.open);
-  const picking = pickingPoint || choosing || editingZones; // the map is being used: large, nothing over it
+  const editingRooms = useRoomEdit((s) => s.open);
+  const picking = pickingPoint || choosing || editingZones || editingRooms; // the map is being used: large, nothing over it
   const [size, setSize] = useState({ width: 0, height: 0 });
 
   // Picking a point, or choosing what to clean, needs the map, large.

@@ -1,16 +1,17 @@
 // Choosing what to clean, at the bottom of the Home tab: Everything, an Area (dragged on the map),
-// a Spot (tapped on the map) or a saved Plan; the options; Save plan; Start. The robot's preview
-// (its rows on the map, its estimate here) follows every change, so what will happen is on the
-// screen before anything moves. Stop stays below, as on every screen.
+// a Spot (tapped on the map), a Room (by name) or a saved Plan; the options; Save plan; Start.
+// The robot's preview (its rows on the map, its estimate here) follows every change, so what will
+// happen is on the screen before anything moves. Stop stays below, as on every screen.
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { dismissNotice, useActions } from '../robot/actionsStore';
-import { closeChooser, chooseKind, choosePlan, deletePlan, loadPlans, savePlan, setOption, startClean } from '../robot/cleaning';
+import { closeChooser, chooseKind, choosePlan, chooseRoom, deletePlan, loadPlans, savePlan, setOption, startClean } from '../robot/cleaning';
 import { choiceHint, jobFor, planNameProblem } from '../robot/cleanChoice';
 import { type ChoiceKind, type CleanOptions, useChoice } from '../robot/cleaningStore';
 import { estimateText, targetLabel } from '../robot/cleaningText';
+import { useRobot } from '../robot/store';
 import type { CleaningPlanInfo } from '../transport/messages';
 import { ActionBar, type BarButton } from './ActionBar';
 import { NameDialog } from './NameDialog';
@@ -20,10 +21,12 @@ const KINDS: { kind: ChoiceKind; label: string }[] = [
   { kind: 'everything', label: 'Everything' },
   { kind: 'area', label: 'Area' },
   { kind: 'spot', label: 'Spot' },
+  { kind: 'room', label: 'Room' },
   { kind: 'plan', label: 'Plans' },
 ];
 
-const PLAN_SUGGESTION: Record<ChoiceKind, string> = { everything: 'Whole home', area: 'My area', spot: 'My spot', plan: '' };
+// A room and a saved plan already have names: they are not saved as plans.
+const PLAN_SUGGESTION: Record<ChoiceKind, string> = { everything: 'Whole home', area: 'My area', spot: 'My spot', room: '', plan: '' };
 
 function optionsText(o: CleanOptions, plan: CleaningPlanInfo | null): string {
   const edges = plan ? plan.job.edges === 'on' : o.edges;
@@ -32,14 +35,46 @@ function optionsText(o: CleanOptions, plan: CleaningPlanInfo | null): string {
 }
 
 function planSummary(p: CleaningPlanInfo): string {
-  return `${targetLabel(p.job.what)} · ${estimateText(p.estimate)}`;
+  return `${p.job.what === 'room' ? p.job.room : targetLabel(p.job.what)} · ${estimateText(p.estimate)}`;
+}
+
+/** The saved rooms of the map in use, as chips: a tap picks one. */
+function RoomChoice({ roomName }: { roomName: string | null }) {
+  const currentMap = useRobot((s) => s.robotState?.value.currentMap ?? '');
+  const rooms = useRobot((s) => s.rooms);
+  const names = rooms && rooms.value.mapName === currentMap ? rooms.value.rooms.map((r) => r.name) : [];
+  const gone = roomName !== null && rooms !== null && !names.includes(roomName);
+  // The room chosen was renamed or deleted since: choose again.
+  useEffect(() => {
+    if (gone) chooseRoom(null);
+  }, [gone]);
+  if (names.length === 0) {
+    return <Text style={[styles.muted, styles.rooms]}>No rooms yet. Close this, then find them with the Rooms button on the map.</Text>;
+  }
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.rooms} contentContainerStyle={styles.roomChips}>
+      {names.map((name) => (
+        <Pressable
+          key={name}
+          accessibilityRole="button"
+          accessibilityState={{ selected: name === roomName }}
+          onPress={() => chooseRoom(name)}
+          style={[styles.roomChip, name === roomName && styles.roomChipOn]}
+        >
+          <Text style={[styles.roomChipText, name === roomName && styles.roomChipTextOn]} numberOfLines={1}>
+            {name}
+          </Text>
+        </Pressable>
+      ))}
+    </ScrollView>
+  );
 }
 
 /** The panel above the buttons: what to clean, and what the robot says it will take. */
 function ChooserPanel() {
   const choice = useChoice();
   const busy = useActions((s) => s.busy);
-  const { kind, preview, plans, planName, options } = choice;
+  const { kind, preview, plans, planName, roomName, options } = choice;
   const hint = choiceHint(choice);
   const chosenPlan = kind === 'plan' ? (plans.list.find((p) => p.name === planName) ?? null) : null;
 
@@ -73,12 +108,14 @@ function ChooserPanel() {
             onPress={() => chooseKind(k)}
             style={[styles.segment, kind === k && styles.segmentOn]}
           >
-            <Text style={[styles.segmentText, kind === k && styles.segmentTextOn]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+            <Text style={[styles.segmentText, kind === k && styles.segmentTextOn]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
               {label}
             </Text>
           </Pressable>
         ))}
       </View>
+
+      {kind === 'room' ? <RoomChoice roomName={roomName} /> : null}
 
       {kind === 'plan' ? (
         <View style={styles.plans}>
@@ -214,7 +251,7 @@ export function CleanChooserBar({
     {
       key: 'save',
       label: busy === 'save_plan' ? 'Saving…' : 'Save plan',
-      enabled: choice.kind !== 'plan' && ready && connected && busy === null,
+      enabled: choice.kind !== 'plan' && choice.kind !== 'room' && ready && connected && busy === null,
       hint: null,
       onPress: () => setSaving(true),
     },
@@ -254,11 +291,24 @@ const styles = StyleSheet.create({
   title: { flex: 1, fontSize: 16, fontWeight: '700', color: colors.text },
   close: { fontSize: 18, color: colors.muted, paddingHorizontal: spacing.xs },
   segments: { flexDirection: 'row', borderWidth: 1, borderColor: colors.cleaning, borderRadius: 10, overflow: 'hidden' },
-  segment: { flex: 1, height: 38, justifyContent: 'center', alignItems: 'center' },
+  segment: { flex: 1, height: 38, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 2 },
   segmentOn: { backgroundColor: colors.cleaning },
   segmentText: { fontSize: 14, fontWeight: '600', color: colors.cleaning },
   segmentTextOn: { color: '#ffffff' },
   plans: { marginTop: spacing.s },
+  rooms: { marginTop: spacing.s },
+  roomChips: { gap: spacing.s },
+  roomChip: {
+    maxWidth: 200,
+    borderWidth: 1,
+    borderColor: colors.cleaning,
+    borderRadius: 999,
+    paddingHorizontal: spacing.m,
+    paddingVertical: spacing.s,
+  },
+  roomChipOn: { backgroundColor: colors.cleaning },
+  roomChipText: { fontSize: 14, fontWeight: '600', color: colors.cleaning },
+  roomChipTextOn: { color: '#ffffff' },
   planList: { maxHeight: 150 },
   plan: {
     flexDirection: 'row',

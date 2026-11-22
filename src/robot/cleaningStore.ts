@@ -21,7 +21,7 @@ const initialCleaning: CleaningData = { status: null, plan: null, cleaned: null,
 
 export const useCleaning = create<CleaningData>(() => initialCleaning);
 
-export type ChoiceKind = 'everything' | 'area' | 'spot' | 'plan';
+export type ChoiceKind = 'everything' | 'area' | 'spot' | 'room' | 'plan';
 
 export interface CleanOptions {
   edges: boolean; // a pass along walls and furniture after the rows
@@ -58,6 +58,7 @@ export interface ChoiceState {
   area: Box | null; // metres, map coordinates
   spot: { x: number; y: number } | null; // metres, map coordinates
   planName: string | null;
+  roomName: string | null; // a room of the map in use, by name
   options: CleanOptions;
   preview: PreviewState;
   plans: PlansList;
@@ -69,6 +70,7 @@ const initialChoice: ChoiceState = {
   area: null,
   spot: null,
   planName: null,
+  roomName: null,
   options: DEFAULT_OPTIONS,
   preview: NO_PREVIEW,
   plans: { state: 'none', list: [], problem: null },

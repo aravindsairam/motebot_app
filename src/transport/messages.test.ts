@@ -11,6 +11,7 @@ import {
   CommandType,
   DataType,
   type CleaningJob,
+  decodeAssistantStatus,
   decodeCleanedArea,
   decodeCleaningPlan,
   decodeCleaningStatus,
@@ -24,22 +25,29 @@ import {
   decodeReply,
   decodeRobotPose,
   decodeRoute,
+  decodeRobotSettings,
   decodeRobotState,
+  decodeRooms,
   decodeSafetyStatus,
+  encodeAskAssistant,
   encodeCancelGoal,
   encodeChangeMode,
   encodeDeleteCleaningPlan,
   encodeDrive,
+  encodeFindRooms,
   encodeGetCleaningRecord,
   encodeGoTo,
   encodeListCleaningHistory,
   encodeListCleaningPlans,
+  encodeNameRooms,
   encodePauseCleaning,
   encodePing,
   encodePreviewCleaning,
   encodeSaveCleaningPlan,
   encodeSaveMap,
   encodeSetNoGoZones,
+  encodeSetRobotSettings,
+  encodeSetRooms,
   encodeStartExploration,
   encodeStartCleaning,
   PROTOCOL_VERSION,
@@ -64,6 +72,7 @@ const AREA_JOB: CleaningJob = {
   passes: 2,
   edges: 'on',
   returnToDock: 'off',
+  room: '',
 };
 const SPOT_JOB: CleaningJob = {
   what: 'spot',
@@ -75,6 +84,7 @@ const SPOT_JOB: CleaningJob = {
   passes: 0,
   edges: 'default',
   returnToDock: 'off',
+  room: '',
 };
 const ESTIMATE = {
   rows: 31,
@@ -114,6 +124,24 @@ const STATUS = {
 };
 // The same numbers, as the job ended (`finished` in samples.py: a stopped job)
 const ENDED = { ...STATUS, state: 'stopped', message: 'stopped: the robot left cleaning mode (now idle)', currentRow: 0, currentEdge: 0, timeLeft: 0 };
+// `room_list` in samples.py, in metres
+const ROOMS = [
+  { name: 'Kitchen', points: [6.5, 0, 10.6, 0, 10.6, 3.2, 6.5, 3.2], x: 8.55, y: 1.6, area: 12.75 },
+  { name: 'Bedroom é', points: [0, 4.1, 3.9, 4.1, 3.9, 7.6], x: -1.25, y: 5.5, area: 6.5 },
+];
+// A room clean with nothing else set (`command_start_cleaning_room.bin`)
+const ROOM_JOB: CleaningJob = {
+  what: 'room',
+  area: [],
+  spotX: 0,
+  spotY: 0,
+  planName: '',
+  direction: '',
+  passes: 0,
+  edges: 'default',
+  returnToDock: 'default',
+  room: 'Kitchen',
+};
 
 function sample(name: string, type: number) {
   const frame = decodeFrame(new Uint8Array(fs.readFileSync(path.join(SAMPLES, name))), 1 << 20);
@@ -137,6 +165,43 @@ describeWithSamples('messages written by the gateway', () => {
     expect(zones.map((z) => z.name)).toEqual(['stairwell', 'rug é']);
     expect(Array.from(zones[0].points)).toEqual([4.55, 2, 5.65, 2, 5.65, 3.3, 4.55, 3.3].map(Math.fround));
     expect(Array.from(zones[1].points)).toEqual([-1, -0.5, 0, 0, -0.5, 1]);
+  });
+
+  it('RobotSettings: the five values, the limits and the turn speed', () => {
+    expect(decodeRobotSettings(sample('robot_settings.bin', DataType.DATA_ROBOT_SETTINGS))).toEqual({
+      cleaningSpeed: 0.25,
+      manualSpeed: 0.125,
+      rowSpacing: 0.25,
+      rowAngleAuto: false,
+      rowAngle: 37.5,
+      limits: {
+        cleaningSpeedMin: 0.125,
+        cleaningSpeedMax: 0.3125,
+        manualSpeedMin: 0.0625,
+        manualSpeedMax: 0.375,
+        rowSpacingMin: 0.125,
+        rowSpacingMax: 0.5,
+        rowSpacingStep: 0.0625,
+      },
+      manualTurnSpeed: 0.5,
+    });
+  });
+
+  it('Reply: a setting outside its limits is refused, with the reason', () => {
+    expect(decodeReply(sample('reply_settings_refused.bin', DataType.DATA_REPLY))).toEqual({
+      requestId: 73,
+      result: 'refused',
+      message: 'the cleaning speed must be between 0.10 and 0.30 m/s (asked for 0.50)',
+      goalId: new Uint8Array(0),
+      estimate: null,
+      plans: [],
+      history: null,
+      record: null,
+      replanned: false,
+      jobId: 0,
+      answer: null,
+      rooms: null,
+    });
   });
 
   it('Hello', () => {
@@ -249,6 +314,8 @@ describeWithSamples('messages written by the gateway', () => {
       record: null,
       replanned: false,
       jobId: 0,
+      answer: null,
+      rooms: null,
     });
   });
 
@@ -264,6 +331,8 @@ describeWithSamples('messages written by the gateway', () => {
       record: null,
       replanned: false,
       jobId: 0,
+      answer: null,
+      rooms: null,
     });
   });
 
@@ -339,6 +408,8 @@ describeWithSamples('messages written by the gateway', () => {
       record: null,
       replanned: false,
       jobId: 7,
+      answer: null,
+      rooms: null,
     });
   });
 
@@ -381,6 +452,8 @@ describeWithSamples('messages written by the gateway', () => {
       record: null,
       replanned: true,
       jobId: 0,
+      answer: null,
+      rooms: null,
     });
   });
 
@@ -411,28 +484,75 @@ describeWithSamples('messages written by the gateway', () => {
     });
   });
 
+  it('Rooms: names, outlines and spots in metres, the map they belong to', () => {
+    expect(decodeRooms(sample('rooms.bin', DataType.DATA_ROOMS))).toEqual({ mapName: 'home', rooms: ROOMS });
+  });
+
+  it('AssistantStatus', () => {
+    expect(decodeAssistantStatus(sample('assistant_status.bin', DataType.DATA_ASSISTANT_STATUS))).toEqual({
+      busy: true,
+      conversation: 'phone-1a2b',
+      doing: 'going to the kitchen',
+    });
+  });
+
+  it('Reply with an answer: its words, what it did, a picture and a place on the map', () => {
+    expect(decodeReply(sample('reply_answer.bin', DataType.DATA_REPLY))).toEqual({
+      requestId: 74,
+      result: 'ok',
+      message: '',
+      goalId: new Uint8Array(0),
+      estimate: null,
+      plans: [],
+      history: null,
+      record: null,
+      replanned: false,
+      jobId: 0,
+      answer: {
+        text: "I'm in the kitchen. I can see a table and two stools.",
+        toolsUsed: ['go_to_room', 'look'],
+        picture: Uint8Array.from([0xff, 0xd8, 0xff, 0xd9]),
+        mark: { x: 8.55, y: -1.25 },
+      },
+      rooms: null,
+    });
+  });
+
+  it('Reply with the rooms found', () => {
+    const reply = decodeReply(sample('reply_rooms.bin', DataType.DATA_REPLY));
+    expect(reply).toMatchObject({ requestId: 75, result: 'ok', message: 'found 2 rooms', answer: null });
+    expect(reply.rooms).toEqual({ mapName: 'home', rooms: ROOMS });
+  });
+
   it('every sample on disk is covered by a test', () => {
     expect(fs.readdirSync(SAMPLES).sort()).toEqual([
+      'assistant_status.bin',
       'cleaned_area.bin',
       'cleaning_plan.bin',
       'cleaning_plan_empty.bin',
       'cleaning_status.bin',
       'cleaning_status_ending.bin',
+      'command_ask_assistant.bin',
       'command_cancel_goal.bin',
       'command_change_mode.bin',
       'command_delete_cleaning_plan.bin',
       'command_drive.bin',
+      'command_find_rooms.bin',
       'command_get_cleaning_record.bin',
       'command_go_to.bin',
       'command_list_cleaning_history.bin',
       'command_list_cleaning_plans.bin',
+      'command_name_rooms.bin',
       'command_pause_cleaning.bin',
       'command_ping.bin',
       'command_preview_cleaning.bin',
       'command_save_cleaning_plan.bin',
       'command_save_map.bin',
       'command_set_no_go_zones.bin',
+      'command_set_robot_settings.bin',
+      'command_set_rooms.bin',
       'command_start_cleaning.bin',
+      'command_start_cleaning_room.bin',
       'command_start_exploration.bin',
       'exploration_status.bin',
       'frontiers.bin',
@@ -442,18 +562,23 @@ describeWithSamples('messages written by the gateway', () => {
       'navigation_status.bin',
       'no_go_zones.bin',
       'reply.bin',
+      'reply_answer.bin',
       'reply_go_to.bin',
       'reply_history.bin',
       'reply_name_taken.bin',
       'reply_plans.bin',
       'reply_preview.bin',
       'reply_record.bin',
+      'reply_rooms.bin',
+      'reply_settings_refused.bin',
       'reply_start_cleaning.bin',
       'reply_start_exploration.bin',
       'robot_pose.bin',
+      'robot_settings.bin',
       'robot_state.bin',
       'robot_state_exploring.bin',
       'robot_state_failsafe.bin',
+      'rooms.bin',
       'route.bin',
       'safety_status.bin',
     ]);
@@ -503,6 +628,16 @@ describeWithSamples('commands written by the app', () => {
     ];
     const frame = encodeFrame(CHANNEL_COMMAND, CommandType.COMMAND_SET_NO_GO_ZONES, encodeSetNoGoZones(68, 'house', zones), 1 << 20);
     expect([...frame]).toEqual([...onDisk('command_set_no_go_zones.bin')]);
+  });
+
+  it('SetRobotSettings: the five values, without the limits and the turn speed', () => {
+    const values = { cleaningSpeed: 0.25, manualSpeed: 0.125, rowSpacing: 0.25, rowAngleAuto: false, rowAngle: 37.5 };
+    const frame = encodeFrame(CHANNEL_COMMAND, CommandType.COMMAND_SET_ROBOT_SETTINGS, encodeSetRobotSettings(72, values), 1 << 20);
+    expect([...frame]).toEqual([...onDisk('command_set_robot_settings.bin')]);
+    // what the robot reported goes back as it came, less the parts that are the robot's to say
+    const reported = decodeRobotSettings(sample('robot_settings.bin', DataType.DATA_ROBOT_SETTINGS));
+    const again = encodeFrame(CHANNEL_COMMAND, CommandType.COMMAND_SET_ROBOT_SETTINGS, encodeSetRobotSettings(72, reported), 1 << 20);
+    expect([...again]).toEqual([...onDisk('command_set_robot_settings.bin')]);
   });
 
   it('Drive', () => {
@@ -558,6 +693,40 @@ describeWithSamples('commands written by the app', () => {
   it('GetCleaningRecord', () => {
     const frame = encodeFrame(CHANNEL_COMMAND, CommandType.COMMAND_GET_CLEANING_RECORD, encodeGetCleaningRecord(67, '20261118-101500-7'), 1 << 20);
     expect([...frame]).toEqual([...onDisk('command_get_cleaning_record.bin')]);
+  });
+
+  it('StartCleaning, a room by its name', () => {
+    const frame = encodeFrame(CHANNEL_COMMAND, CommandType.COMMAND_START_CLEANING, encodeStartCleaning(80, ROOM_JOB), 1 << 20);
+    expect([...frame]).toEqual([...onDisk('command_start_cleaning_room.bin')]);
+  });
+
+  it('FindRooms', () => {
+    const frame = encodeFrame(CHANNEL_COMMAND, CommandType.COMMAND_FIND_ROOMS, encodeFindRooms(76), 1 << 20);
+    expect([...frame]).toEqual([...onDisk('command_find_rooms.bin')]);
+  });
+
+  it('SetRooms: metres go as whole centimetres', () => {
+    const frame = encodeFrame(CHANNEL_COMMAND, CommandType.COMMAND_SET_ROOMS, encodeSetRooms(77, 'home', ROOMS), 1 << 20);
+    expect([...frame]).toEqual([...onDisk('command_set_rooms.bin')]);
+    // the rooms the robot sent go back as they came
+    const reported = decodeRooms(sample('rooms.bin', DataType.DATA_ROOMS));
+    const again = encodeFrame(CHANNEL_COMMAND, CommandType.COMMAND_SET_ROOMS, encodeSetRooms(77, reported.mapName, reported.rooms), 1 << 20);
+    expect([...again]).toEqual([...onDisk('command_set_rooms.bin')]);
+  });
+
+  it('NameRooms', () => {
+    const frame = encodeFrame(CHANNEL_COMMAND, CommandType.COMMAND_NAME_ROOMS, encodeNameRooms(79, ROOMS), 1 << 20);
+    expect([...frame]).toEqual([...onDisk('command_name_rooms.bin')]);
+  });
+
+  it('AskAssistant, with text outside ASCII', () => {
+    const frame = encodeFrame(
+      CHANNEL_COMMAND,
+      CommandType.COMMAND_ASK_ASSISTANT,
+      encodeAskAssistant(78, 'phone-1a2b', 'Clean the kitchen, please é'),
+      1 << 20,
+    );
+    expect([...frame]).toEqual([...onDisk('command_ask_assistant.bin')]);
   });
 
   it('Ping, with a request number that needs all 32 bits', () => {

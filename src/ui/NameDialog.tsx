@@ -1,5 +1,5 @@
-// Asks for a name, then saves under it: a map, a cleaning plan. If the name is taken, asks
-// before replacing what has that name.
+// Asks for a name, then saves under it: a map, a cleaning plan, a room's new name. If the name is
+// taken, asks before replacing what has that name.
 
 import { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -16,6 +16,7 @@ export function NameDialog({
   backLabel,
   what,
   autoCapitalize = 'none',
+  saveLabel = 'Save',
   problemOf,
   save,
   onClose,
@@ -27,6 +28,7 @@ export function NameDialog({
   backLabel: string; // the button that closes without saving
   what: string; // "map", "plan": for the question before replacing
   autoCapitalize?: 'none' | 'sentences' | 'words';
+  saveLabel?: string; // the button that saves: "Save", "Rename"
   problemOf: (name: string) => string | null;
   save: (name: string, replace: boolean) => Promise<SaveAnswer>;
   onClose: () => void;
@@ -80,7 +82,7 @@ export function NameDialog({
               style={[styles.button, styles.save, (problem !== null || saving) && styles.disabled]}
               accessibilityRole="button"
             >
-              <Text style={styles.saveText}>{saving ? 'Saving…' : 'Save'}</Text>
+              <Text style={styles.saveText}>{saving ? 'Saving…' : saveLabel}</Text>
             </Pressable>
           </View>
         </View>

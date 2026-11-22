@@ -4,7 +4,18 @@
 import { create } from 'zustand';
 
 import type { ConnectionStatus } from '../transport/connection';
-import type { Hello, MapData, NavigationStatus, NoGoZones, RobotState, Route, SafetyStatus } from '../transport/messages';
+import type {
+  AssistantStatus,
+  Hello,
+  MapData,
+  NavigationStatus,
+  NoGoZones,
+  RobotSettings,
+  RobotState,
+  Rooms,
+  Route,
+  SafetyStatus,
+} from '../transport/messages';
 
 export interface Received<T> {
   value: T;
@@ -24,6 +35,9 @@ export interface RobotData {
   route: Received<Route> | null; // the route Nav2 planned last
   navigation: Received<NavigationStatus> | null; // the newest navigation goal, whoever sent it
   zones: Received<NoGoZones> | null; // the no-go zones of the map in use; sent when they change
+  settings: Received<RobotSettings> | null; // the settings the robot keeps, with their limits; sent when they change
+  rooms: Received<Rooms> | null; // the rooms of the map in use; sent when they change
+  assistant: Received<AssistantStatus> | null; // what the robot is doing about a question, if anything
 }
 
 export const initialRobotData: RobotData = {
@@ -39,6 +53,9 @@ export const initialRobotData: RobotData = {
   route: null,
   navigation: null,
   zones: null,
+  settings: null,
+  rooms: null,
+  assistant: null,
 };
 
 export const useRobot = create<RobotData>(() => initialRobotData);

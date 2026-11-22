@@ -25,6 +25,8 @@ export interface Reply {
   record: CleaningRecord | null; // GetCleaningRecord, with its picture
   replanned: boolean; // PreviewCleaning of a saved plan whose map has changed: its rows were planned again
   jobId: number; // StartCleaning or StartExploration, when accepted: the job's number, as in its status; 0 otherwise
+  answer: AssistantAnswer | null; // AskAssistant
+  rooms: Rooms | null; // FindRooms, NameRooms: the rooms proposed
 }
 
 const RESULTS: Record<number, ReplyResult> = {
@@ -158,6 +160,70 @@ export function encodeSetNoGoZones(requestId: number, mapName: string, zones: re
   }).finish();
 }
 
+/** The settings a user may change. The robot keeps them, so every phone shows the same ones. */
+export interface SettingsValues {
+  cleaningSpeed: number; // m/s on the rows and edges of a clean; a clean under way changes speed at once
+  manualSpeed: number; // m/s with the joystick pushed all the way
+  rowSpacing: number; // m between cleaning rows; used from the next plan
+  rowAngleAuto: boolean; // in each room, whichever way needs fewer turns
+  rowAngle: number; // degrees from the map's x axis, 0 up to (not including) 180; used when not auto
+}
+
+/** What the robot accepts, so the app's controls need no numbers of their own. */
+export interface SettingsLimits {
+  cleaningSpeedMin: number; // m/s
+  cleaningSpeedMax: number;
+  manualSpeedMin: number; // m/s
+  manualSpeedMax: number;
+  rowSpacingMin: number; // m
+  rowSpacingMax: number;
+  rowSpacingStep: number; // m: the spacing is a whole number of these
+}
+
+/** The settings as the robot reports them. Numbers travel as 32-bit floats: 0.2 arrives as
+ *  0.20000000298, so compare and show them with that in mind. */
+export interface RobotSettings extends SettingsValues {
+  limits: SettingsLimits; // all zero from a gateway that does not send them
+  manualTurnSpeed: number; // rad/s with the joystick pushed all the way to one side; it follows manualSpeed
+}
+
+export function decodeRobotSettings(payload: Uint8Array): RobotSettings {
+  const m = pb.RobotSettings.decode(payload);
+  const l = m.limits;
+  return {
+    cleaningSpeed: m.cleaningSpeed,
+    manualSpeed: m.manualSpeed,
+    rowSpacing: m.rowSpacing,
+    rowAngleAuto: m.rowAngleAuto,
+    rowAngle: m.rowAngle,
+    limits: {
+      cleaningSpeedMin: l?.cleaningSpeedMin ?? 0,
+      cleaningSpeedMax: l?.cleaningSpeedMax ?? 0,
+      manualSpeedMin: l?.manualSpeedMin ?? 0,
+      manualSpeedMax: l?.manualSpeedMax ?? 0,
+      rowSpacingMin: l?.rowSpacingMin ?? 0,
+      rowSpacingMax: l?.rowSpacingMax ?? 0,
+      rowSpacingStep: l?.rowSpacingStep ?? 0,
+    },
+    manualTurnSpeed: m.manualTurnSpeed,
+  };
+}
+
+/** Change the settings: the complete new set of the five values. The limits and the turn speed
+ *  are the robot's to say, and are left out even when `settings` carries them. */
+export function encodeSetRobotSettings(requestId: number, settings: SettingsValues): Uint8Array {
+  return pb.SetRobotSettings.encode({
+    requestId,
+    settings: {
+      cleaningSpeed: settings.cleaningSpeed,
+      manualSpeed: settings.manualSpeed,
+      rowSpacing: settings.rowSpacing,
+      rowAngleAuto: settings.rowAngleAuto,
+      rowAngle: settings.rowAngle,
+    },
+  }).finish();
+}
+
 export function sameGoal(a: Uint8Array | null | undefined, b: Uint8Array | null | undefined): boolean {
   if (!a || !b || a.length !== b.length || a.length === 0) return false;
   for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
@@ -191,6 +257,8 @@ export function decodeReply(payload: Uint8Array): Reply {
     record: m.record ? recordOf(m.record) : null,
     replanned: m.replanned === true,
     jobId: m.jobId ?? 0,
+    answer: m.answer ? answerOf(m.answer) : null,
+    rooms: m.rooms ? roomsOf(m.rooms) : null,
   };
 }
 
@@ -278,7 +346,7 @@ export function decodeSafetyStatus(payload: Uint8Array): SafetyStatus {
 // The robot's cleaning node plans, drives and records every clean; these carry its requests and
 // reports. Stop is ChangeMode to idle and Dock is ChangeMode to docking. Metres, map coordinates.
 
-export type CleaningWhat = 'everything' | 'area' | 'spot' | 'plan';
+export type CleaningWhat = 'everything' | 'area' | 'spot' | 'plan' | 'room';
 /** 'default' leaves it to the robot's own setting. */
 export type CleaningOption = 'default' | 'off' | 'on';
 
@@ -293,6 +361,7 @@ export interface CleaningJob {
   passes: number; // 1, or 2 for a second pass at right angles; 0 means 1
   edges: CleaningOption; // a pass along walls and furniture after the rows
   returnToDock: CleaningOption; // dock when finished
+  room: string; // a room of the map, by name (WHAT_ROOM)
 }
 
 export interface CleaningEstimate {
@@ -404,12 +473,14 @@ const WHAT: Record<number, CleaningWhat> = {
   [pb.CleaningJob.What.WHAT_AREA]: 'area',
   [pb.CleaningJob.What.WHAT_SPOT]: 'spot',
   [pb.CleaningJob.What.WHAT_PLAN]: 'plan',
+  [pb.CleaningJob.What.WHAT_ROOM]: 'room',
 };
 const WHAT_NUMBER: Record<CleaningWhat, number> = {
   everything: pb.CleaningJob.What.WHAT_EVERYTHING,
   area: pb.CleaningJob.What.WHAT_AREA,
   spot: pb.CleaningJob.What.WHAT_SPOT,
   plan: pb.CleaningJob.What.WHAT_PLAN,
+  room: pb.CleaningJob.What.WHAT_ROOM,
 };
 const OPTION: Record<number, CleaningOption> = {
   [pb.CleaningJob.Option.OPTION_DEFAULT]: 'default',
@@ -452,6 +523,7 @@ function jobOf(m: vacuum.v1.CleaningJob.$Properties | null | undefined): Cleanin
     passes: m?.passes ?? 0,
     edges: OPTION[m?.edges ?? 0] ?? 'default',
     returnToDock: OPTION[m?.returnToDock ?? 0] ?? 'default',
+    room: m?.room ?? '',
   };
 }
 
@@ -565,6 +637,7 @@ function jobMessage(job: CleaningJob): vacuum.v1.CleaningJob.$Properties {
     passes: job.passes,
     edges: OPTION_NUMBER[job.edges],
     returnToDock: OPTION_NUMBER[job.returnToDock],
+    room: job.room,
   };
 }
 
@@ -669,4 +742,99 @@ export function decodeFrontiers(payload: Uint8Array): Frontiers {
 /** Start an exploration; `timeLimit` in seconds of robot time, 0 for the robot's default. */
 export function encodeStartExploration(requestId: number, timeLimit: number): Uint8Array {
   return pb.StartExploration.encode({ requestId, timeLimit }).finish();
+}
+
+// ---------------------------------------------------------------- rooms and questions
+// The rooms of the map in use: found from the map (split at its doorways) and named by the user
+// or by the robot. The robot also answers questions in plain words; to answer one it may drive,
+// look with its camera or start a clean. Metres, map coordinates.
+
+/** One room of the map in use. */
+export interface Room {
+  name: string;
+  points: number[]; // the outline: x0, y0, x1, y1, ...
+  x: number; // the room's most open spot: where the robot goes to visit it, and where its name shows
+  y: number;
+  area: number; // m2 of floor
+}
+
+/** The rooms and the saved map they belong to. Empty when there are none yet. */
+export interface Rooms {
+  mapName: string;
+  rooms: Room[];
+}
+
+/** What the robot is doing about a question: shown under that question while it waits. */
+export interface AssistantStatus {
+  busy: boolean;
+  conversation: string; // the chat the question came from
+  doing: string; // a few words ("going to the kitchen"); empty when not busy
+}
+
+/** The robot's answer to a question. */
+export interface AssistantAnswer {
+  text: string;
+  toolsUsed: string[]; // what it looked at or did, in order
+  picture: Uint8Array; // JPEG: what the camera saw; empty when none
+  mark: { x: number; y: number } | null; // a place on the map that goes with the answer
+}
+
+const toCm = (metres: number) => Math.round(metres * 100);
+
+function roomOf(m: vacuum.v1.Rooms.Room.$Properties): Room {
+  return {
+    name: m.name ?? '',
+    points: Array.from(m.pointsCm ?? [], (v) => v / 100),
+    x: (m.xCm ?? 0) / 100,
+    y: (m.yCm ?? 0) / 100,
+    area: m.area ?? 0,
+  };
+}
+
+function roomsOf(m: vacuum.v1.Rooms.$Properties): Rooms {
+  return { mapName: m.mapName ?? '', rooms: (m.rooms ?? []).map(roomOf) };
+}
+
+/** A room as it goes to the robot: whole centimetres. */
+function roomMessage(r: Room): vacuum.v1.Rooms.Room.$Properties {
+  return { name: r.name, pointsCm: r.points.map(toCm), xCm: toCm(r.x), yCm: toCm(r.y), area: r.area };
+}
+
+function answerOf(m: vacuum.v1.AssistantAnswer.$Properties): AssistantAnswer {
+  const mark = m.markCm ?? [];
+  return {
+    text: m.text ?? '',
+    toolsUsed: [...(m.toolsUsed ?? [])],
+    picture: m.pictureJpeg ? Uint8Array.from(m.pictureJpeg) : new Uint8Array(0),
+    mark: mark.length >= 2 ? { x: mark[0] / 100, y: mark[1] / 100 } : null,
+  };
+}
+
+export function decodeRooms(payload: Uint8Array): Rooms {
+  return roomsOf(pb.Rooms.decode(payload));
+}
+
+export function decodeAssistantStatus(payload: Uint8Array): AssistantStatus {
+  const m = pb.AssistantStatus.decode(payload);
+  return { busy: m.busy, conversation: m.conversation, doing: m.doing };
+}
+
+/** Split the map in use into rooms: answered with a proposal, nothing saved. */
+export function encodeFindRooms(requestId: number): Uint8Array {
+  return pb.FindRooms.encode({ requestId }).finish();
+}
+
+/** Replace the rooms of map `mapName` (the one in use) with these; an empty list deletes them all. */
+export function encodeSetRooms(requestId: number, mapName: string, rooms: readonly Room[]): Uint8Array {
+  return pb.SetRooms.encode({ requestId, mapName, rooms: rooms.map(roomMessage) }).finish();
+}
+
+/** Name these rooms by looking: the robot drives to each one. Answered with the same rooms, named. */
+export function encodeNameRooms(requestId: number, rooms: readonly Room[]): Uint8Array {
+  return pb.NameRooms.encode({ requestId, rooms: rooms.map(roomMessage) }).finish();
+}
+
+/** A question in plain words. The same `conversation` carries a chat on; a new one starts afresh. */
+export function encodeAskAssistant(requestId: number, conversation: string, text: string): Uint8Array {
+  return pb.AskAssistant.encode({ requestId, conversation, text }).finish();
 }

@@ -1,8 +1,8 @@
 import { CommandType } from '../transport/messages';
-import { helloFrame, replyFrame, ReplyResult, robotStateFrame, sentCommands, TestSocket } from '../transport/testSocket';
+import { helloFrame, replyFrame, ReplyResult, robotStateFrame, sentCommands, settingsFrame, TestSocket } from '../transport/testSocket';
 import { useActions } from './actionsStore';
 import { connectTo, disconnect } from './client';
-import { DEAD_ZONE, DRIVE_PERIOD_MS, holdStick, isDriving, MAX_FORWARD, MAX_TURN, releaseStick, stickToSpeeds } from './drive';
+import { DEAD_ZONE, DRIVE_PERIOD_MS, holdStick, isDriving, MAX_FORWARD, MAX_TURN, releaseStick, stickToSpeeds, topSpeeds } from './drive';
 
 beforeEach(() => {
   jest.useFakeTimers();
@@ -48,7 +48,51 @@ describe('the stick', () => {
   });
 });
 
+describe("the stick's top speeds", () => {
+  it("are the app's own until the robot has sent its settings", () => {
+    expect(topSpeeds(null)).toEqual({ forward: MAX_FORWARD, turn: MAX_TURN });
+    expect(topSpeeds(undefined)).toEqual({ forward: 0.3, turn: 1.2 });
+  });
+
+  it("are the robot's joystick speed and the turn speed that follows it", () => {
+    expect(topSpeeds({ manualSpeed: 0.15, manualTurnSpeed: 0.6 })).toEqual({ forward: 0.15, turn: 0.6 });
+  });
+
+  it('fall back one by one: a robot that sends no turn speed, or a value that cannot be a speed', () => {
+    expect(topSpeeds({ manualSpeed: 0.15, manualTurnSpeed: 0 })).toEqual({ forward: 0.15, turn: MAX_TURN });
+    expect(topSpeeds({ manualSpeed: 0, manualTurnSpeed: 0.6 })).toEqual({ forward: MAX_FORWARD, turn: 0.6 });
+    expect(topSpeeds({ manualSpeed: NaN, manualTurnSpeed: -1 })).toEqual({ forward: MAX_FORWARD, turn: MAX_TURN });
+  });
+
+  it('scale the whole of the stick: full push is the top speed, the dead zone stays', () => {
+    const top = { forward: 0.15, turn: 0.6 };
+    expect(stickToSpeeds(0, 1, top).forward).toBeCloseTo(0.15);
+    expect(stickToSpeeds(0, -3, top).forward).toBeCloseTo(-0.15);
+    expect(stickToSpeeds(1, 0, top).turn).toBeCloseTo(-0.6);
+    expect(stickToSpeeds(-1, 0, top).turn).toBeCloseTo(0.6);
+    expect(stickToSpeeds(DEAD_ZONE * 0.9, 0, top)).toEqual({ forward: 0, turn: 0 });
+    // the same push gives the same share of the top speed
+    expect(stickToSpeeds(0, 0.5, top).forward / 0.15).toBeCloseTo(stickToSpeeds(0, 0.5).forward / MAX_FORWARD);
+    expect(stickToSpeeds(0.5, 0, top).turn / 0.6).toBeCloseTo(stickToSpeeds(0.5, 0).turn / MAX_TURN);
+  });
+});
+
 describe('driving', () => {
+  it("drives at the robot's joystick speed once the robot has sent its settings, and follows a change", () => {
+    const socket = connected();
+    holdStick(0, 1);
+    expect(drives(socket)[0].drive?.forward).toBeCloseTo(MAX_FORWARD); // not known yet
+    socket.deliver(settingsFrame({ manualSpeed: 0.125, manualTurnSpeed: 0.5 }));
+    jest.advanceTimersByTime(DRIVE_PERIOD_MS);
+    expect(drives(socket)[1].drive).toEqual({ forward: 0.125, turn: -0 });
+    holdStick(-1, 0);
+    jest.advanceTimersByTime(DRIVE_PERIOD_MS);
+    expect(drives(socket)[2].drive?.turn).toBeCloseTo(0.5);
+    socket.deliver(settingsFrame({ manualSpeed: 0.25, manualTurnSpeed: 1 }));
+    jest.advanceTimersByTime(DRIVE_PERIOD_MS);
+    expect(drives(socket)[3].drive?.turn).toBeCloseTo(1);
+  });
+
   it('sends 20 times a second while held, then one zero, then nothing', () => {
     const socket = connected();
     holdStick(0, 1);

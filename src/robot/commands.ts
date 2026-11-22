@@ -3,27 +3,35 @@
 
 import { RequestError } from '../transport/connection';
 import {
+  type AssistantAnswer,
   type CleaningEstimate,
   type CleaningHistory,
   type CleaningJob,
   type CleaningPlanInfo,
   type CleaningRecord,
   CommandType,
+  encodeAskAssistant,
   encodeChangeMode,
   encodeDeleteCleaningPlan,
   encodeDrive,
+  encodeFindRooms,
   encodeGetCleaningRecord,
   encodeGoTo,
   encodeListCleaningHistory,
   encodeListCleaningPlans,
+  encodeNameRooms,
   encodePauseCleaning,
   encodePreviewCleaning,
   encodeSaveCleaningPlan,
   encodeSaveMap,
   encodeSetNoGoZones,
+  encodeSetRobotSettings,
+  encodeSetRooms,
   encodeStartCleaning,
   encodeStartExploration,
   type Reply,
+  type Room,
+  type SettingsValues,
 } from '../transport/messages';
 import { currentConnection } from './client';
 
@@ -34,11 +42,21 @@ const GO_TO_TIMEOUT_MS = 17_000; // the gateway's limit is 12 s: a route check, 
 const DRIVE_TIMEOUT_MS = 3000; // answered at once; the next one follows 50 ms later anyway
 const SAVE_MAP_TIMEOUT_MS = 65_000; // the gateway's limit is 60 s
 const SET_ZONES_TIMEOUT_MS = 20_000; // the robot saves them, makes Nav2's mask and has Nav2 load it
+// The robot only checks the settings and writes a small file. Longer than the gateway's longest
+// limit for a short request (20 s), so that normally the gateway's own answer arrives first.
+const SET_SETTINGS_TIMEOUT_MS = 25_000;
 // The robot answers a Start once it has planned the job, in about a second; the gateway's limit
 // for it is still the one it had when the answer came after the mode change (260 s).
 const START_CLEANING_TIMEOUT_MS = 270_000;
 const CLEANING_CALL_TIMEOUT_MS = 25_000; // the gateway's limit is 20 s for every other cleaning request
 const START_EXPLORATION_TIMEOUT_MS = 15_000; // answered at once, before the robot changes mode; the gateway's limit is 10 s
+// Finding the rooms takes about a second, saving them less. Longer than the gateway's longest
+// limit for a short request (20 s), so that normally the gateway's own answer arrives first.
+const ROOMS_CALL_TIMEOUT_MS = 25_000;
+// The robot drives to each room and looks: a few minutes.
+const NAME_ROOMS_TIMEOUT_MS = 15 * 60_000;
+// Seconds for most questions; minutes when the robot is asked to drive somewhere first.
+const ASK_TIMEOUT_MS = 10 * 60_000;
 
 export interface Outcome {
   ok: boolean;
@@ -106,6 +124,13 @@ export async function sendSaveMap(name: string, replace: boolean): Promise<Outco
  *  saved and in force, or with the robot's reason for refusing. */
 export async function sendSetNoGoZones(mapName: string, zones: readonly { name: string; points: ArrayLike<number> }[]): Promise<Outcome> {
   return (await ask(CommandType.COMMAND_SET_NO_GO_ZONES, (id) => encodeSetNoGoZones(id, mapName, zones), SET_ZONES_TIMEOUT_MS)).outcome;
+}
+
+/** Change the robot's settings: the complete new set of the five values. Answered once the robot
+ *  has saved them, or with its reason for refusing (a value outside its limits; nothing changes
+ *  then). After OK the robot sends every phone the new settings. */
+export async function setRobotSettings(settings: SettingsValues): Promise<Outcome> {
+  return (await ask(CommandType.COMMAND_SET_ROBOT_SETTINGS, (id) => encodeSetRobotSettings(id, settings), SET_SETTINGS_TIMEOUT_MS)).outcome;
 }
 
 /** Start a clean. Answered once the robot has checked and planned the job (about a second), with
@@ -177,4 +202,31 @@ export async function listCleaningHistory(maxRecords = 0): Promise<Outcome & { h
 export async function getCleaningRecord(recordId: string): Promise<Outcome & { record: CleaningRecord | null }> {
   const { reply, outcome } = await ask(CommandType.COMMAND_GET_CLEANING_RECORD, (id) => encodeGetCleaningRecord(id, recordId), CLEANING_CALL_TIMEOUT_MS);
   return { ...outcome, record: outcome.ok ? (reply?.record ?? null) : null };
+}
+
+/** Split the map in use into rooms. Answered with a proposal (null when not OK); nothing is
+ *  saved. Names of saved rooms that match are kept. */
+export async function findRooms(): Promise<Outcome & { rooms: Room[] | null }> {
+  const { reply, outcome } = await ask(CommandType.COMMAND_FIND_ROOMS, encodeFindRooms, ROOMS_CALL_TIMEOUT_MS);
+  return { ...outcome, rooms: outcome.ok ? (reply?.rooms?.rooms ?? []) : null };
+}
+
+/** Name the rooms by looking: the robot drives to each one, takes a picture and names it. Answered
+ *  after a few minutes with the same rooms, named (null when not OK); nothing is saved. */
+export async function nameRooms(rooms: readonly Room[]): Promise<Outcome & { rooms: Room[] | null }> {
+  const { reply, outcome } = await ask(CommandType.COMMAND_NAME_ROOMS, (id) => encodeNameRooms(id, rooms), NAME_ROOMS_TIMEOUT_MS);
+  return { ...outcome, rooms: outcome.ok ? (reply?.rooms?.rooms ?? []) : null };
+}
+
+/** Replace the rooms of map `mapName` (the one in use) with `rooms`. After OK the robot sends
+ *  every phone the new rooms. */
+export async function setRooms(mapName: string, rooms: readonly Room[]): Promise<Outcome> {
+  return (await ask(CommandType.COMMAND_SET_ROOMS, (id) => encodeSetRooms(id, mapName, rooms), ROOMS_CALL_TIMEOUT_MS)).outcome;
+}
+
+/** Ask the robot something in plain words. Resolves with its answer, or with why it could not
+ *  answer (then `answer` may still carry the robot's own words); never rejects. */
+export async function askAssistant(conversation: string, text: string): Promise<Outcome & { answer: AssistantAnswer | null }> {
+  const { reply, outcome } = await ask(CommandType.COMMAND_ASK_ASSISTANT, (id) => encodeAskAssistant(id, conversation, text), ASK_TIMEOUT_MS);
+  return { ...outcome, answer: reply?.answer ?? null };
 }

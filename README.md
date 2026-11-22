@@ -8,8 +8,11 @@ The Android app for [MOTEbot](https://github.com/aravindsairam/motebot), a robot
 - **Send it somewhere.** Tap a spot on the map and the robot drives there.
 - **Drive it.** A joystick, and the robot stops the moment you let go.
 - **Make a map.** Drive around, or press Explore and watch the map grow.
-- **Clean.** Everything, an area you draw, or one spot. You see the rows and the time before it starts.
+- **Clean.** Everything, an area you draw, one spot, or one room. You see the rows and the time before it starts.
+- **Name the rooms.** The robot splits the map into rooms. Name them yourself, or let the robot go and look.
+- **Ask it.** Chat with the robot in your own words: "Is the kitchen clean?" It can look with its camera and drive there to answer.
 - **Keep it out.** Draw no-go zones on the map.
+- **Set it up your way.** Cleaning speed, joystick speed, and how far apart and which way the rows run.
 - **Look back.** Every clean is kept with its numbers and a picture.
 
 ## Setup

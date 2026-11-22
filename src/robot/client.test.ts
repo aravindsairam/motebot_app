@@ -16,6 +16,7 @@ import {
   robotStateFrame,
   safetyFrame,
   sentCommands,
+  settingsFrame,
   TestSocket,
 } from '../transport/testSocket';
 import { livePose } from './live';
@@ -100,12 +101,31 @@ describe('the robot store, fed by a connection', () => {
     expect(useRobot.getState().connection.kind).toBe('connected');
   });
 
+  it("holds the robot's settings, with when they arrived", () => {
+    let clock = 5000;
+    connectTo(address, { createSocket: TestSocket.create, now: () => clock });
+    const socket = TestSocket.latest();
+    socket.deliver(helloFrame());
+    expect(useRobot.getState().settings).toBeNull();
+    clock = 6000;
+    socket.deliver(settingsFrame({ rowSpacing: 0.25, rowAngleAuto: false, rowAngle: 90 }));
+    expect(useRobot.getState().settings).toMatchObject({ at: 6000, value: { rowSpacing: 0.25, rowAngleAuto: false, rowAngle: 90 } });
+  });
+
   it('forgets everything on disconnect', () => {
     connectTo(address, { createSocket: TestSocket.create });
     TestSocket.latest().deliver(helloFrame());
     TestSocket.latest().deliver(poseFrame(1, 1));
+    TestSocket.latest().deliver(settingsFrame());
     disconnect();
-    expect(useRobot.getState()).toMatchObject({ address: null, connection: { kind: 'stopped' }, everConnected: false, robotState: null, map: null });
+    expect(useRobot.getState()).toMatchObject({
+      address: null,
+      connection: { kind: 'stopped' },
+      everConnected: false,
+      robotState: null,
+      map: null,
+      settings: null,
+    });
     expect(livePose.value).toBeNull();
   });
 });

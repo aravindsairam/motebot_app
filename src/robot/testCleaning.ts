@@ -12,6 +12,7 @@ export const TEST_JOB: CleaningJob = {
   passes: 1,
   edges: 'off',
   returnToDock: 'on',
+  room: '',
 };
 
 export function cleaningStatus(more: Partial<CleaningStatus> = {}): CleaningStatus {

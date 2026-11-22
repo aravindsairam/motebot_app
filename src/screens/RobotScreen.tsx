@@ -1,5 +1,6 @@
-// The Robot tab: what the robot is doing, in detail: mode, faults, the safety gate, the
-// connection; with Stop and Dock at the bottom and Reset when the robot is in failsafe.
+// The Robot tab: the robot's settings (speeds, cleaning rows), then what the robot is doing, in
+// detail: mode, faults, the safety gate, the connection; with Stop and Dock at the bottom and
+// Reset when the robot is in failsafe.
 //
 // Old data is never shown as current: when the connection is lost, or the robot has said nothing
 // for 2 s, the content is greyed and labelled with its age.
@@ -17,6 +18,7 @@ import { APP_VERSION } from '../version';
 import { PROTOCOL_VERSION } from '../transport/messages';
 import { ageText, Banner, Button, Card, Row, useNow } from '../ui/parts';
 import { RobotActionBar, useRobotActions } from '../ui/RobotActions';
+import { SettingsCard } from '../ui/SettingsCard';
 import { StatusStrip } from '../ui/StatusStrip';
 import { colors, spacing } from '../ui/theme';
 
@@ -73,6 +75,8 @@ export function RobotScreen() {
             </View>
           </Banner>
         ) : null}
+
+        <SettingsCard />
 
         <View style={stateLive ? null : styles.old}>
           <Card title="Mode">
