@@ -66,7 +66,17 @@ function SensorTile({ label, set, live }: { label: string; set: boolean; live: b
 
 export function RobotScreen() {
   const now = useNow();
-  const { address, connection, hello, heardAt, pingMs, robotState, safety } = useRobot();
+  // One subscription per value shown. The time of the last message is NOT one of them: it changes
+  // with every message, many times a second, and following it redrew this whole tab that often
+  // (even while another tab is open, since tabs stay mounted). The clock above redraws the tab
+  // twice a second anyway, so it is read then.
+  const address = useRobot((s) => s.address);
+  const connection = useRobot((s) => s.connection);
+  const hello = useRobot((s) => s.hello);
+  const pingMs = useRobot((s) => s.pingMs);
+  const robotState = useRobot((s) => s.robotState);
+  const safety = useRobot((s) => s.safety);
+  const heardAt = useRobot.getState().heardAt;
   const connected = connection.kind === 'connected';
   const stateLive = connected && isFresh(robotState, now);
   const safetyLive = connected && isFresh(safety, now);

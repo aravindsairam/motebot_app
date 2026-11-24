@@ -45,7 +45,9 @@ export function ConnectedTabs() {
         {/* The tab bar makes way for the keyboard, so the chat keeps its room. */}
         <Tab.Screen name="Ask" component={AskScreen} options={{ tabBarHideOnKeyboard: true, tabBarIcon: icon('ask') }} />
         <Tab.Screen name="History" component={HistoryScreen} options={{ tabBarIcon: icon('history') }} />
-        <Tab.Screen name="Robot" component={RobotScreen} options={{ tabBarIcon: icon('robot') }} />
+        {/* Frozen while another tab is open: it shows only the robot's details, and redrawing them
+            in the background kept the phone busy for nothing. Shown again, it draws the latest. */}
+        <Tab.Screen name="Robot" component={RobotScreen} options={{ tabBarIcon: icon('robot'), freezeOnBlur: true }} />
       </Tab.Navigator>
     </NavigationContainer>
   );
