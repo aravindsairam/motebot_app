@@ -148,8 +148,13 @@ function FailsafeCard() {
   const reason = useRobot((s) => s.robotState?.value.reason ?? '');
   const { controls, busy, reset } = useRobotActions();
   return (
-    <View style={styles.failsafe}>
-      <Text style={styles.failsafeTitle}>Failsafe: the robot is stopped</Text>
+    <View style={styles.failsafe} accessibilityRole="alert">
+      <View style={styles.failsafeHead}>
+        <View style={styles.failsafeIcon}>
+          <Text style={styles.failsafeIconText}>!</Text>
+        </View>
+        <Text style={styles.failsafeTitle}>Failsafe: the robot is stopped</Text>
+      </View>
       {reason ? <Text style={styles.failsafeText}>{reason}</Text> : null}
       {controls.reset.target === 'mapping' ? <Text style={styles.failsafeText}>Reset goes back to mapping: the map being made is kept.</Text> : null}
       <View style={styles.failsafeButton}>
@@ -208,6 +213,7 @@ export function RobotActionBar({ main = false }: { main?: boolean }) {
 
   const dockButton: BarButton = {
     key: 'dock',
+    icon: 'dock',
     label: busy === 'dock' ? 'Starting…' : controls.dock.label,
     enabled: controls.dock.enabled && busy === null,
     hint: controls.dock.hint,
@@ -216,6 +222,8 @@ export function RobotActionBar({ main = false }: { main?: boolean }) {
   const mappingButtons: BarButton[] = [
     {
       key: 'explore',
+      icon: 'explore',
+      color: colors.explore,
       label: busy === 'explore' ? 'Starting…' : 'Explore',
       enabled: controls.explore.enabled && busy === null,
       hint: controls.explore.hint,
@@ -235,11 +243,13 @@ export function RobotActionBar({ main = false }: { main?: boolean }) {
       enabled: busy === null && live,
       hint: null,
       onPress: discard,
+      danger: true,
     },
   ];
   const cleaningButtons: BarButton[] = [
     {
       key: 'pause',
+      icon: cleaning.pause.resume ? 'resume' : 'pause',
       label: busy === 'pause' ? 'Pausing…' : busy === 'resume' ? 'Resuming…' : cleaning.pause.label,
       enabled: cleaning.pause.enabled && busy === null,
       hint: null,
@@ -251,13 +261,17 @@ export function RobotActionBar({ main = false }: { main?: boolean }) {
   const mainButtons: BarButton[] = [
     {
       key: 'goto',
-      label: busy === 'goto' ? 'Starting…' : 'Go to',
+      icon: 'goTo',
+      label: busy === 'goto' ? 'Starting…' : picking ? 'Tap the map' : 'Go to',
       enabled: controls.goTo.enabled && busy === null && !picking,
-      hint: picking ? 'Tap the map' : controls.goTo.hint,
+      hint: picking ? null : controls.goTo.hint,
       onPress: startPicking,
+      active: picking,
+      color: colors.info,
     },
     {
       key: 'drive',
+      icon: 'drive',
       label: busy === 'drive' ? 'Starting…' : controls.drive.label,
       enabled: controls.drive.enabled && busy === null,
       hint: controls.drive.hint,
@@ -266,6 +280,7 @@ export function RobotActionBar({ main = false }: { main?: boolean }) {
     },
     {
       key: 'newmap',
+      icon: 'newMap',
       label: busy === 'new_map' ? 'Starting…' : 'New map',
       enabled: controls.newMap.enabled && busy === null,
       hint: controls.newMap.hint,
@@ -273,8 +288,9 @@ export function RobotActionBar({ main = false }: { main?: boolean }) {
     },
     dockButton,
   ];
-  const cleanButton = {
+  const cleanButton: BarButton = {
     key: 'clean',
+    icon: 'clean',
     label: 'Clean',
     enabled: cleaning.clean.enabled && busy === null,
     hint: cleaning.clean.hint,
@@ -292,6 +308,7 @@ export function RobotActionBar({ main = false }: { main?: boolean }) {
           ? cleaningButtons
           : mainButtons;
   const lead = main && !controls.mapping && !controls.exploring && !cleaningNow ? cleanButton : undefined;
+  const tiles = buttons === mainButtons; // the Home tab at rest: icon tiles, then Clean and Stop
   return (
     <>
     <SaveMapDialog visible={saving} suggestion={currentMap || 'house'} onClose={() => setSaving(false)} />
@@ -302,15 +319,19 @@ export function RobotActionBar({ main = false }: { main?: boolean }) {
       notice={notice}
       onDismiss={dismissNotice}
       banner={main && live && mode === 'failsafe' ? <FailsafeCard /> : null}
+      tiles={tiles}
     />
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  failsafe: { backgroundColor: colors.dangerBackground, borderRadius: 10, padding: spacing.m, marginBottom: spacing.m },
-  failsafeTitle: { fontSize: 15, fontWeight: '700', color: colors.danger },
-  failsafeText: { fontSize: 14, color: colors.text, marginTop: spacing.xs },
-  failsafeButton: { marginTop: spacing.s },
+  failsafe: { backgroundColor: colors.dangerBackground, borderRadius: 16, padding: 14 },
+  failsafeHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  failsafeIcon: { width: 24, height: 24, borderRadius: 12, backgroundColor: colors.danger, justifyContent: 'center', alignItems: 'center' },
+  failsafeIconText: { color: '#ffffff', fontSize: 15, fontWeight: '800' },
+  failsafeTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: colors.dangerText },
+  failsafeText: { fontSize: 14, lineHeight: 20, color: colors.text, marginTop: spacing.s },
+  failsafeButton: { marginTop: spacing.m },
   failsafeHint: { fontSize: 13, color: colors.muted, marginTop: spacing.xs, textAlign: 'center' },
 });

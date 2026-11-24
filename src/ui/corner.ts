@@ -1,6 +1,6 @@
 // Where the main screen's small corner window sits. It is dragged with a finger and, when let go,
 // glides to one of the four corners: the corner of the half its middle is in, after a short look
-// ahead along a flick. The top corners sit below the top row of labels (the mode label, Fit), and
+// ahead along a flick. The top corners sit below the map's row of tools (Fit, Zones, Rooms), and
 // the joystick's corner is given up while the joystick shows. Every function here also runs on
 // the UI thread, inside the drag gesture ('worklet').
 
@@ -12,7 +12,7 @@ export interface Size {
 }
 
 export const CORNER_MARGIN = 12; // px from the stage's sides (theme spacing.m)
-export const TOP_INSET = 52; // px: below the map's top row of labels (12 from the top, about 32 high)
+export const TOP_INSET = 64; // px: below the map's row of tools (12 from the top, 44 high, then 8)
 export const FLICK_TIME = 0.15; // s: a flick carries the window this far ahead at its speed
 
 function clamp(v: number, lo: number, hi: number): number {

@@ -1,6 +1,7 @@
-// The clean under way, in four numbers under the status strip: how much of the planned floor is
-// cleaned, the area, the distance driven and the time spent cleaning. All from where the robot
-// has really been. An old copy is greyed, like everything else that is not current.
+// The clean under way, in a white strip under the status strip: a thin bar of how much of the
+// planned floor is cleaned, then four numbers: that share, the area, the distance driven and the
+// time spent cleaning. All from where the robot has really been. An old copy is greyed, like
+// everything else that is not current.
 
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -8,7 +9,7 @@ import { useCleaning } from '../robot/cleaningStore';
 import { ENDED_STATES, liveNumbers, targetLabel } from '../robot/cleaningText';
 import { isFresh } from '../robot/store';
 import { useNow } from './parts';
-import { colors, spacing } from './theme';
+import { colors, fonts, spacing } from './theme';
 
 /** `starting`: this phone has asked for a clean and waits for the answer; the status may still be
  *  the last clean's. */
@@ -24,6 +25,7 @@ export function CleaningPanel({ starting }: { starting: boolean }) {
   }
   const live = isFresh(status, now);
   const n = liveNumbers(status.value);
+  const share = Math.min(100, Math.max(0, status.value.coverage || 0));
   const items = [
     { value: n.coverage, label: 'cleaned' },
     { value: n.area, label: 'area' },
@@ -32,30 +34,47 @@ export function CleaningPanel({ starting }: { starting: boolean }) {
   ];
   return (
     <View style={[styles.panel, !live && styles.old]} accessibilityLabel={`Cleaning ${targetLabel(status.value.target)}`}>
-      {items.map((item) => (
-        <View key={item.label} style={styles.item}>
-          <Text style={styles.value} numberOfLines={1}>
-            {item.value}
-          </Text>
-          <Text style={styles.label}>{item.label}</Text>
-        </View>
-      ))}
+      <View style={styles.track}>
+        <View style={[styles.fill, { width: `${share}%` }]} />
+      </View>
+      <View style={styles.numbers}>
+        {items.map((item, i) => (
+          <View key={item.label} style={styles.item}>
+            <Text style={[styles.value, i === 0 && styles.lead]} numberOfLines={1}>
+              {item.value}
+            </Text>
+            <Text style={styles.label}>{item.label}</Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+// Shared with the exploring panel: the same strip, the same numbers.
+export const panelStyles = StyleSheet.create({
+  // It runs on from the status strip: it covers the strip's bottom line and draws its own.
   panel: {
-    flexDirection: 'row',
-    backgroundColor: colors.cleaningBackground,
+    marginTop: -1,
+    backgroundColor: colors.card,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    paddingVertical: spacing.s,
-    paddingHorizontal: spacing.m,
+    paddingTop: 2,
+    paddingBottom: spacing.m,
+    paddingHorizontal: spacing.l,
+    gap: 10,
   },
   old: { opacity: 0.45 },
-  item: { flex: 1, alignItems: 'center' },
-  value: { fontSize: 20, fontWeight: '700', color: colors.cleaning, fontVariant: ['tabular-nums'] },
+  numbers: { flexDirection: 'row', gap: spacing.xs },
+  item: { flex: 1, alignItems: 'center', gap: 1 },
+  value: { fontFamily: fonts.display, fontSize: 22, color: colors.text, fontVariant: ['tabular-nums'] },
   label: { fontSize: 12, color: colors.muted },
-  waiting: { flex: 1, textAlign: 'center', fontSize: 14, color: colors.muted, paddingVertical: spacing.xs },
+  waiting: { textAlign: 'center', fontSize: 14, color: colors.muted, paddingVertical: spacing.xs },
+});
+
+const styles = StyleSheet.create({
+  ...panelStyles,
+  track: { height: 6, borderRadius: 3, backgroundColor: colors.primarySoft, overflow: 'hidden' },
+  fill: { height: '100%', borderRadius: 3, backgroundColor: colors.primary },
+  lead: { color: colors.primary },
 });

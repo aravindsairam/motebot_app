@@ -1,10 +1,16 @@
 // Asks for a name, then saves under it: a map, a cleaning plan, a room's new name. If the name is
-// taken, asks before replacing what has that name.
+// taken, asks before replacing what has that name. A caller that can also throw the thing away (a
+// room) passes onDelete: a red Delete action shows under the buttons, and the caller asks first.
+//
+// A white card on a dim backdrop; the field's edge turns teal while typing, red when the name will
+// not do.
 
 import { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { colors, spacing } from './theme';
+import { Icon } from './icons';
+import { Button } from './parts';
+import { colors, fonts, radius, spacing } from './theme';
 
 export type SaveAnswer = 'saved' | 'name_taken' | 'failed';
 
@@ -20,6 +26,7 @@ export function NameDialog({
   problemOf,
   save,
   onClose,
+  onDelete,
 }: {
   visible: boolean;
   title: string; // "Save the map"
@@ -32,9 +39,11 @@ export function NameDialog({
   problemOf: (name: string) => string | null;
   save: (name: string, replace: boolean) => Promise<SaveAnswer>;
   onClose: () => void;
+  onDelete?: () => void; // "Delete <what>": the caller confirms, then closes the dialog
 }) {
   const [name, setName] = useState(suggestion);
   const [saving, setSaving] = useState(false);
+  const [focused, setFocused] = useState(false);
   useEffect(() => {
     if (visible) setName(suggestion);
   }, [visible, suggestion]);
@@ -67,24 +76,35 @@ export function NameDialog({
             autoCapitalize={autoCapitalize}
             autoCorrect={false}
             maxLength={40}
-            style={[styles.input, problem ? styles.inputBad : null]}
+            cursorColor={colors.primary}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            style={[styles.input, focused && styles.inputFocused, problem ? styles.inputBad : null]}
             onSubmitEditing={() => !problem && !saving && void go(false)}
             returnKeyType="done"
           />
           <Text style={[styles.help, problem ? styles.helpBad : null]}>{problem ?? help}</Text>
           <View style={styles.buttons}>
-            <Pressable onPress={onClose} style={[styles.button, styles.cancel]} accessibilityRole="button">
-              <Text style={styles.cancelText}>{backLabel}</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => void go(false)}
-              disabled={problem !== null || saving}
-              style={[styles.button, styles.save, (problem !== null || saving) && styles.disabled]}
-              accessibilityRole="button"
-            >
-              <Text style={styles.saveText}>{saving ? 'Saving…' : saveLabel}</Text>
-            </Pressable>
+            <View style={styles.slot}>
+              <Button kind="plain" label={backLabel} onPress={onClose} />
+            </View>
+            <View style={styles.slot}>
+              <Button label={saving ? 'Saving…' : saveLabel} onPress={() => void go(false)} disabled={problem !== null || saving} />
+            </View>
           </View>
+          {onDelete ? (
+            <Pressable
+              onPress={onDelete}
+              disabled={saving}
+              accessibilityRole="button"
+              accessibilityLabel={`Delete the ${what} ${suggestion}`}
+              accessibilityState={{ disabled: saving }}
+              style={({ pressed }) => [styles.delete, (pressed || saving) && styles.deleteDim]}
+            >
+              <Icon name="trash" size={18} color={colors.dangerText} />
+              <Text style={styles.deleteText}>Delete {what}</Text>
+            </Pressable>
+          ) : null}
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -92,19 +112,27 @@ export function NameDialog({
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: spacing.xl },
-  dialog: { backgroundColor: colors.card, borderRadius: 14, padding: spacing.l },
-  title: { fontSize: 18, fontWeight: '700', color: colors.text, marginBottom: spacing.m },
-  label: { fontSize: 13, color: colors.muted, marginBottom: spacing.xs },
-  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, paddingHorizontal: spacing.m, height: 46, fontSize: 16, color: colors.text },
+  backdrop: { flex: 1, backgroundColor: colors.scrim, justifyContent: 'center', padding: spacing.xl },
+  dialog: { backgroundColor: colors.card, borderRadius: radius.xxl, padding: 20 },
+  title: { fontFamily: fonts.display, fontSize: 19, color: colors.text, marginBottom: spacing.m },
+  label: { fontSize: 13, fontWeight: '600', color: colors.muted, marginBottom: 6 },
+  input: {
+    height: 52,
+    borderWidth: 1,
+    borderColor: colors.field,
+    borderRadius: radius.l,
+    backgroundColor: colors.card,
+    paddingHorizontal: 14,
+    fontSize: 16,
+    color: colors.text,
+  },
+  inputFocused: { borderColor: colors.primary },
   inputBad: { borderColor: colors.danger },
-  help: { fontSize: 13, color: colors.muted, marginTop: spacing.xs },
-  helpBad: { color: colors.danger },
-  buttons: { flexDirection: 'row', gap: spacing.m, marginTop: spacing.l },
-  button: { flex: 1, height: 46, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  cancel: { borderWidth: 1, borderColor: colors.border },
-  cancelText: { fontSize: 15, fontWeight: '600', color: colors.text },
-  save: { backgroundColor: colors.primary },
-  saveText: { fontSize: 15, fontWeight: '700', color: '#fff' },
-  disabled: { opacity: 0.45 },
+  help: { fontSize: 13, lineHeight: 18, color: colors.muted, marginTop: 6 },
+  helpBad: { color: colors.dangerText },
+  buttons: { flexDirection: 'row', gap: spacing.s, marginTop: 20 },
+  slot: { flex: 1 },
+  delete: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.s, minHeight: 44, marginTop: spacing.s },
+  deleteDim: { opacity: 0.6 },
+  deleteText: { fontSize: 15, fontWeight: '600', color: colors.dangerText },
 });

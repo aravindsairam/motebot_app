@@ -1,7 +1,10 @@
 // Changing the rooms, at the bottom of the Home tab while the map shows them for editing: Find
-// rooms and Name by looking, what is going on, the rooms with their areas (tap one to rename it,
-// Delete to take it off the list), Cancel and Save. Nothing changes on the robot until Save; when
-// the robot says no, the message card says why. Stop stays below, as on every screen.
+// rooms and Name by looking, what is going on, the rooms with their areas (tap one to rename it or,
+// from the same dialog, to delete it), Cancel and Save. Nothing changes on the robot until Save;
+// when the robot says no, the message card says why. Stop stays below, as on every screen.
+//
+// The two tools are outlined buttons side by side; the rooms are tiles two to a row, the name on
+// the left and the area on the right.
 
 import { Alert, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
@@ -23,14 +26,27 @@ import {
 } from '../robot/rooms';
 import { isFresh, useRobot } from '../robot/store';
 import { ActionBar, type BarButton } from './ActionBar';
+import { Icon, type IconName } from './icons';
 import { NameDialog } from './NameDialog';
 import { useNow } from './parts';
-import { colors, spacing } from './theme';
+import { colors, fonts, radius, spacing } from './theme';
 
-const LIST_SHARE = 0.16; // of the window's height, at most: the map stays in sight on a short phone
-const LIST_MAX = 150;
+const TILE_HEIGHT = 44; // a room's tile
+const LIST_SHARE = 0.17; // of the window's height, at most: the map stays in sight on a short phone
+const LIST_MAX = 3 * TILE_HEIGHT + 2 * spacing.s; // three whole rows of tiles; more rooms scroll
+const TILE = '#f7f9f8'; // a room's tile: a shade lighter than the ground
+const OFF_EDGE = '#d4dbd9'; // the dashed edge of a tool that cannot be used now, as in the bar
 
-function ToolButton({ label, enabled, onPress }: { label: string; enabled: boolean; onPress: () => void }) {
+/** Asks before taking a room off the list; Delete also closes the rename dialog. */
+function confirmDelete(index: number) {
+  const name = useRoomEdit.getState().draft[index]?.name ?? '';
+  Alert.alert(`Delete '${name}'?`, 'The room is taken off the list. Save to make the change on the robot.', [
+    { text: 'Cancel', style: 'cancel' },
+    { text: 'Delete', style: 'destructive', onPress: () => deleteRoom(index) },
+  ]);
+}
+
+function ToolButton({ label, icon, enabled, onPress }: { label: string; icon: IconName; enabled: boolean; onPress: () => void }) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -39,6 +55,7 @@ function ToolButton({ label, enabled, onPress }: { label: string; enabled: boole
       onPress={onPress}
       style={({ pressed }) => [styles.tool, !enabled && styles.toolOff, pressed && enabled && styles.pressed]}
     >
+      <Icon name={icon} size={18} color={enabled ? colors.text : colors.faint} />
       <Text style={[styles.toolText, !enabled && styles.toolTextOff]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
         {label}
       </Text>
@@ -66,48 +83,59 @@ function RoomPanel() {
     );
   }
 
-  function confirmDelete(index: number) {
-    const name = r.draft[index]?.name ?? '';
-    Alert.alert(`Delete '${name}'?`, 'The room is taken off the list. Save to make the change on the robot.', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => deleteRoom(index) },
-    ]);
-  }
+  // Two tiles to a row; an odd last room keeps half the width.
+  const rows: number[][] = [];
+  for (let i = 0; i < r.draft.length; i += 2) rows.push(i + 1 < r.draft.length ? [i, i + 1] : [i]);
 
   return (
     <View style={styles.panel}>
       <View style={styles.header}>
         <Text style={styles.title} numberOfLines={1}>
-          Rooms · {r.mapName}
+          Rooms<Text style={styles.titleMap}>{` · ${r.mapName}`}</Text>
         </Text>
-        <Pressable accessibilityRole="button" accessibilityLabel="Close without saving" onPress={closeRoomEditor} hitSlop={10} disabled={busy}>
-          <Text style={[styles.close, busy && styles.off]}>✕</Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Close without saving"
+          onPress={closeRoomEditor}
+          disabled={busy}
+          style={[styles.close, busy && styles.off]}
+        >
+          <Icon name="close" size={18} color={colors.muted} strokeWidth={2.2} />
         </Pressable>
       </View>
-      <View style={styles.tools}>
-        <ToolButton label={r.work === 'finding' ? 'Finding…' : 'Find rooms'} enabled={!busy && connected} onPress={() => void findRoomsOnMap()} />
-        <ToolButton label={r.work === 'naming' ? 'Naming…' : 'Name by looking'} enabled={!busy && connected && r.draft.length > 0} onPress={confirmNaming} />
+      <View style={styles.pair}>
+        <ToolButton label={r.work === 'finding' ? 'Finding…' : 'Find rooms'} icon="rooms" enabled={!busy && connected} onPress={() => void findRoomsOnMap()} />
+        <ToolButton
+          label={r.work === 'naming' ? 'Naming…' : 'Name by looking'}
+          icon="camera"
+          enabled={!busy && connected && r.draft.length > 0}
+          onPress={confirmNaming}
+        />
       </View>
       <Text style={styles.line}>{line}</Text>
       {r.draft.length > 0 ? (
-        <ScrollView style={{ maxHeight: Math.min(LIST_MAX, Math.round(height * LIST_SHARE)) }} nestedScrollEnabled>
-          {r.draft.map((room, i) => (
-            <View key={i} style={styles.room}>
-              <Pressable
-                style={styles.roomWords}
-                onPress={() => startRenaming(i)}
-                disabled={busy}
-                accessibilityRole="button"
-                accessibilityLabel={`Rename ${room.name}`}
-              >
-                <Text style={styles.roomName} numberOfLines={1}>
-                  {room.name}
-                </Text>
-                <Text style={styles.roomArea}>{roomAreaText(room.area)}</Text>
-              </Pressable>
-              <Pressable onPress={() => confirmDelete(i)} disabled={busy} hitSlop={8} accessibilityRole="button" accessibilityLabel={`Delete the room ${room.name}`}>
-                <Text style={[styles.delete, busy && styles.off]}>Delete</Text>
-              </Pressable>
+        <ScrollView style={{ maxHeight: Math.min(LIST_MAX, Math.round(height * LIST_SHARE)) }} contentContainerStyle={styles.grid} nestedScrollEnabled>
+          {rows.map((row) => (
+            <View key={row[0]} style={styles.pair}>
+              {row.map((i) => {
+                const room = r.draft[i];
+                return (
+                  <Pressable
+                    key={i}
+                    style={({ pressed }) => [styles.room, busy && styles.off, pressed && !busy && styles.pressed]}
+                    onPress={() => startRenaming(i)}
+                    disabled={busy}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Rename ${room.name}`}
+                  >
+                    <Text style={styles.roomName} numberOfLines={1}>
+                      {room.name}
+                    </Text>
+                    <Text style={styles.roomArea}>{roomAreaText(room.area)}</Text>
+                  </Pressable>
+                );
+              })}
+              {row.length === 1 ? <View style={styles.gap} /> : null}
             </View>
           ))}
         </ScrollView>
@@ -144,6 +172,7 @@ export function RoomEditorBar({ stop }: { stop: { enabled: boolean; label: strin
         problemOf={(name) => roomNameProblem(name, r.draft, index ?? -1)}
         save={async (name) => (index !== null && renameRoom(index, name) === null ? 'saved' : 'failed')}
         onClose={stopRenaming}
+        onDelete={index !== null ? () => confirmDelete(index) : undefined}
       />
       <ActionBar buttons={buttons} stop={stop} notice={notice} onDismiss={dismissNotice} banner={<RoomPanel />} />
     </>
@@ -151,37 +180,46 @@ export function RoomEditorBar({ stop }: { stop: { enabled: boolean; label: strin
 }
 
 const styles = StyleSheet.create({
-  panel: { marginBottom: spacing.s },
-  header: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.s },
-  title: { flex: 1, fontSize: 16, fontWeight: '700', color: colors.text },
-  close: { fontSize: 18, color: colors.muted, paddingHorizontal: spacing.xs },
+  panel: { gap: 10 },
+  header: { flexDirection: 'row', alignItems: 'center' },
+  title: { flex: 1, fontFamily: fonts.display, fontSize: 19, color: colors.text },
+  titleMap: { fontFamily: fonts.displayMedium, color: colors.muted },
+  close: { width: 44, height: 44, marginVertical: -8, marginRight: -10, justifyContent: 'center', alignItems: 'center' },
   off: { opacity: 0.4 },
-  tools: { flexDirection: 'row', gap: spacing.s },
+  pressed: { opacity: 0.8 },
+  pair: { flexDirection: 'row', gap: spacing.s },
+  gap: { flex: 1 },
   tool: {
     flex: 1,
-    height: 40,
-    borderRadius: 10,
+    height: 44,
+    flexDirection: 'row',
+    gap: spacing.s,
+    borderRadius: radius.m,
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderStyle: 'solid', // named, so Android drops the dashed edge when the button becomes usable
+    borderColor: colors.field,
+    backgroundColor: colors.card,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: spacing.xs,
+    paddingHorizontal: spacing.s,
   },
-  toolOff: { borderColor: colors.border },
-  toolText: { fontSize: 14, fontWeight: '600', color: colors.primary },
-  toolTextOff: { color: colors.muted },
-  pressed: { opacity: 0.7 },
-  line: { fontSize: 14, color: colors.muted, marginTop: spacing.s, marginBottom: spacing.xs },
+  toolOff: { borderStyle: 'dashed', borderColor: OFF_EDGE },
+  toolText: { flexShrink: 1, fontSize: 14, fontWeight: '600', color: colors.text },
+  toolTextOff: { color: colors.faint },
+  line: { fontSize: 14, color: colors.muted },
+  grid: { gap: spacing.s },
   room: {
+    flex: 1,
+    height: TILE_HEIGHT,
     flexDirection: 'row',
     alignItems: 'center',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-    paddingVertical: spacing.s,
-    gap: spacing.m,
+    gap: spacing.s,
+    borderRadius: radius.m,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: TILE,
+    paddingHorizontal: spacing.m,
   },
-  roomWords: { flex: 1, flexDirection: 'row', alignItems: 'baseline', gap: spacing.s },
-  roomName: { flex: 1, fontSize: 15, fontWeight: '600', color: colors.text },
-  roomArea: { fontSize: 13, color: colors.muted, fontVariant: ['tabular-nums'] },
-  delete: { fontSize: 14, fontWeight: '600', color: colors.danger },
+  roomName: { flex: 1, fontSize: 14, fontWeight: '600', color: colors.text },
+  roomArea: { fontSize: 12, fontWeight: '500', color: colors.muted, fontVariant: ['tabular-nums'] },
 });

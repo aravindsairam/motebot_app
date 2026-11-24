@@ -8,9 +8,11 @@
 
 import type { MapData } from '../transport/messages';
 
-const UNKNOWN = [214, 218, 224];
+// The design's colours: unknown is the theme's mapUnknown (#e4e8e6), the floor white, walls and
+// other obstacles #2e3936.
+const UNKNOWN = [228, 232, 230];
 const FREE = [255, 255, 255];
-const OCCUPIED = [31, 41, 55];
+const OCCUPIED = [46, 57, 54];
 
 /** RGBA pixels for the map, rows flipped so that +y is up. */
 export function cellsToRgba(map: Pick<MapData, 'cells' | 'width' | 'height'>): Uint8Array {

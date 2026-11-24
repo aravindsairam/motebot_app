@@ -1,10 +1,12 @@
 // The main screen's picture: one view large, the other in a small window in a corner. Tap the
-// window to swap the map and the camera; its ✕ hides it. Drag it with a finger: let go, and it
-// glides to the nearest corner (a flick counts in its direction). The top corners sit below the
-// top row of labels, and while the joystick shows (manual and mapping modes) it keeps the bottom
-// right, so a window there shows bottom left. While a point is being picked on the map, a clean is
-// being chosen, or the no-go zones or the rooms are being changed, the map is large and the window
-// is out of the way.
+// window to swap the map and the camera; its ✕ hides it, and a white pill brings it back. Drag it
+// with a finger: let go, and it glides to the nearest corner (a flick counts in its direction). The
+// top corners sit below the map's row of tools, and while the joystick shows (manual and mapping
+// modes) it keeps the bottom right, so a window there shows bottom left. While a point is being
+// picked on the map, a clean is being chosen, or the no-go zones or the rooms are being changed,
+// the map is large and the window is out of the way.
+//
+// The window has rounded corners, a white edge and a soft shadow; the ✕ is a small dark disc.
 //
 // The window follows the finger on the UI thread (shared values and an animated style), not
 // through React, so it does not lag. Both views keep their place in the tree whichever is small:
@@ -22,16 +24,19 @@ import { useTrip } from '../robot/tripStore';
 import { useZoneEdit } from '../robot/zones';
 import { CameraView } from './CameraView';
 import { type Corner, CORNER_MARGIN, cornerOrigin, nearestCorner, shownCorner, TOP_INSET } from './corner';
+import { Icon } from './icons';
 import { Joystick } from './Joystick';
 import { MapView } from './MapView';
 import { setCorner, showCorner, swapViews, useStage } from './stageStore';
-import { colors, spacing } from './theme';
+import { colors, floatShadow, radius, spacing } from './theme';
 
 const CORNER_SHARE = 0.38; // of the stage's width
 const CORNER_MAX_HEIGHT = 0.4; // of the stage's height: on a short stage (a small phone) the window is smaller
 const CORNER_ASPECT = 0.75; // height / width: the camera's 4:3
 const GLIDE_MS = 180; // to a new corner when the stage or the joystick changes
 const SPRING = { damping: 20, stiffness: 220 }; // to the corner after a drag
+const WINDOW_GROUND = '#2e3936'; // behind the window's view while it loads: the map's wall colour
+const WINDOW_SHADOW = { elevation: 6, shadowColor: colors.text, shadowOpacity: 0.2, shadowRadius: 18, shadowOffset: { width: 0, height: 6 } };
 
 function placeKey(c: Corner, width: number, height: number): string {
   return `${c} ${width} ${height}`;
@@ -167,12 +172,15 @@ export function Stage({ joystick }: { joystick: { shown: boolean; enabled: boole
               accessibilityLabel={`Show the ${other} large; drag to move this window`}
             />
           </GestureDetector>
-          <Pressable style={styles.hide} onPress={() => showCorner(false)} hitSlop={10} accessibilityRole="button" accessibilityLabel="Hide the corner window">
-            <Text style={styles.hideText}>✕</Text>
+          <Pressable style={styles.hide} onPress={() => showCorner(false)} accessibilityRole="button" accessibilityLabel="Hide the corner window">
+            <View style={styles.hideDisc}>
+              <Icon name="close" size={12} color="#ffffff" strokeWidth={3} />
+            </View>
           </Pressable>
         </Animated.View>
       ) : !picking ? (
-        <Pressable style={[styles.reopen, reopenAt]} onPress={() => showCorner(true)} accessibilityRole="button">
+        <Pressable style={({ pressed }) => [styles.reopen, reopenAt, pressed && styles.pressed]} onPress={() => showCorner(true)} accessibilityRole="button">
+          <Icon name={other === 'camera' ? 'camera' : 'newMap'} size={18} color={colors.text} strokeWidth={1.9} />
           <Text style={styles.reopenText}>{other === 'camera' ? 'Show camera' : 'Show map'}</Text>
         </Pressable>
       ) : null}
@@ -187,42 +195,38 @@ export function Stage({ joystick }: { joystick: { shown: boolean; enabled: boole
 }
 
 const styles = StyleSheet.create({
-  stage: { flex: 1, backgroundColor: '#e5e7eb', overflow: 'hidden' },
+  stage: { flex: 1, backgroundColor: colors.mapUnknown, overflow: 'hidden' },
   large: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 },
   hidden: { display: 'none' },
   frame: {
     position: 'absolute',
     left: 0,
     top: 0,
-    borderRadius: 10,
+    borderRadius: radius.l,
     overflow: 'hidden',
     borderWidth: 2,
     borderColor: '#ffffff',
-    elevation: 6,
+    backgroundColor: WINDOW_GROUND,
+    ...WINDOW_SHADOW,
     zIndex: 2,
   },
-  touch: { backgroundColor: 'transparent', borderColor: 'transparent', zIndex: 3, elevation: 7 },
-  hide: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: 'rgba(17,24,39,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  hideText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  touch: { backgroundColor: 'transparent', borderColor: 'transparent', zIndex: 3, elevation: 7, shadowOpacity: 0 },
+  // The ✕: a 26 px dark disc in the window's corner, inside a 44 px touch area.
+  hide: { position: 'absolute', top: 0, right: 0, width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
+  hideDisc: { width: 26, height: 26, borderRadius: 13, backgroundColor: colors.overlay, justifyContent: 'center', alignItems: 'center' },
   reopen: {
     position: 'absolute',
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderRadius: 8,
-    paddingHorizontal: spacing.m,
-    paddingVertical: spacing.s,
+    height: 44,
+    borderRadius: 22,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.float,
+    ...floatShadow,
     zIndex: 2,
-    elevation: 3,
   },
-  reopenText: { fontSize: 13, fontWeight: '600', color: colors.primary },
+  reopenText: { fontSize: 14, fontWeight: '600', color: colors.text },
+  pressed: { opacity: 0.7 },
   joystick: { position: 'absolute', right: spacing.l, bottom: spacing.l, zIndex: 4, elevation: 8 },
 });

@@ -5,9 +5,9 @@ describe('the map as a picture', () => {
     // 2 x 2 map: bottom row (row 0) unknown, free; top row occupied, half
     const rgba = cellsToRgba({ cells: Int8Array.from([-1, 0, 100, 50]), width: 2, height: 2 });
     const pixel = (i: number) => [...rgba.subarray(i * 4, i * 4 + 4)];
-    expect(pixel(0)).toEqual([31, 41, 55, 255]); // top-left of the picture: occupied (map row 1)
-    expect(pixel(1)).toEqual([143, 148, 155, 255]); // top-right: half way to occupied
-    expect(pixel(2)).toEqual([214, 218, 224, 255]); // bottom-left: unknown (map row 0)
+    expect(pixel(0)).toEqual([46, 57, 54, 255]); // top-left of the picture: occupied (map row 1)
+    expect(pixel(1)).toEqual([151, 156, 155, 255]); // top-right: half way to occupied
+    expect(pixel(2)).toEqual([228, 232, 230, 255]); // bottom-left: unknown (map row 0)
     expect(pixel(3)).toEqual([255, 255, 255, 255]); // bottom-right: free
   });
 });

@@ -2,6 +2,7 @@
 // mode, and the one line most worth knowing about what it is doing.
 
 import { StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCleaning } from '../robot/cleaningStore';
 import { progressText, RUNNING_STATES } from '../robot/cleaningText';
@@ -11,10 +12,11 @@ import { modeLook } from '../robot/modes';
 import { isFresh, useRobot } from '../robot/store';
 import { tripView } from '../robot/tripView';
 import { Chip, useNow } from './parts';
-import { colors, spacing } from './theme';
+import { colors, fonts, spacing } from './theme';
 
 export function StatusStrip() {
   const now = useNow();
+  const insets = useSafeAreaInsets();
   const connection = useRobot((s) => s.connection);
   const hello = useRobot((s) => s.hello);
   const robotState = useRobot((s) => s.robotState);
@@ -36,13 +38,20 @@ export function StatusStrip() {
   else detail = tripView(navigation, state.state, now).text ?? state.reason;
 
   return (
-    <View style={styles.strip}>
+    <View style={[styles.strip, { paddingTop: TOP_PADDING + insets.top }]}>
       <View style={styles.line}>
         <View style={[styles.dot, { backgroundColor: live ? colors.good : connected ? colors.warning : colors.danger }]} />
         <Text style={styles.name} numberOfLines={1}>
           {hello?.robotName ?? 'Robot'}
         </Text>
-        {state ? <Chip label={look.label.toUpperCase()} color={live ? look.color : colors.muted} /> : null}
+        {state ? (
+          <Chip
+            label={look.label.toUpperCase()}
+            color={live ? look.color : colors.muted}
+            background={live ? look.background : colors.line}
+            strong={live && state.state === 'failsafe'}
+          />
+        ) : null}
       </View>
       <Text style={styles.detail} numberOfLines={2}>
         {detail}
@@ -51,10 +60,18 @@ export function StatusStrip() {
   );
 }
 
+const TOP_PADDING = 14; // below the phone's own top bar, which the strip reaches up behind (white like it)
+
 const styles = StyleSheet.create({
-  strip: { paddingHorizontal: spacing.l, paddingVertical: spacing.m, backgroundColor: colors.card, borderBottomWidth: 1, borderBottomColor: colors.border },
-  line: { flexDirection: 'row', alignItems: 'center' },
-  dot: { width: 10, height: 10, borderRadius: 5, marginRight: spacing.s },
-  name: { flex: 1, fontSize: 18, fontWeight: '700', color: colors.text },
+  strip: {
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    backgroundColor: colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  line: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  dot: { width: 10, height: 10, borderRadius: 5 },
+  name: { flex: 1, fontSize: 21, fontFamily: fonts.display, color: colors.text, letterSpacing: -0.2 },
   detail: { fontSize: 14, color: colors.muted, marginTop: spacing.xs },
 });

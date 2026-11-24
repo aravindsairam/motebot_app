@@ -6,8 +6,8 @@ const win = { width: 152, height: 114 };
 test('each corner sits 12 px in from its sides, the top ones below the labels', () => {
   expect(cornerOrigin('bottomLeft', stage, win)).toEqual({ x: 12, y: 574 });
   expect(cornerOrigin('bottomRight', stage, win)).toEqual({ x: 236, y: 574 });
-  expect(cornerOrigin('topLeft', stage, win)).toEqual({ x: 12, y: 52 });
-  expect(cornerOrigin('topRight', stage, win)).toEqual({ x: 236, y: 52 });
+  expect(cornerOrigin('topLeft', stage, win)).toEqual({ x: 12, y: 64 });
+  expect(cornerOrigin('topRight', stage, win)).toEqual({ x: 236, y: 64 });
 });
 
 test('a bottom corner follows the stage height', () => {

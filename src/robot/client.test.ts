@@ -164,8 +164,8 @@ describe('commands', () => {
 describe('modes', () => {
   it('has friendly names for known modes and shows unknown ones by name', () => {
     expect(modeLook('navigation').label).toBe('Navigation');
-    expect(modeLook('exploring')).toEqual({ label: 'Exploring', color: '#0369a1' });
-    expect(modeLook('charging')).toEqual({ label: 'Charging', color: '#6b7280' }); // a mode added after this app
+    expect(modeLook('exploring')).toEqual({ label: 'Exploring', color: '#185c94', background: '#e5eff8' });
+    expect(modeLook('charging')).toEqual({ label: 'Charging', color: '#5a6763', background: '#eceef0' }); // a mode added after this app
     expect(modeLook('').label).toBe('Unknown');
   });
 });

@@ -1,18 +1,26 @@
 // The joystick: a ring with a knob that follows the thumb. Up drives forward, sideways turns.
 // It sends while held and stops the robot when let go, when the app goes to the background, and
-// when it disappears from the screen.
+// when it disappears from the screen. A white see-through ring with four small grey arrows, and a
+// blue knob (the mapping mode's colour).
 
 import { useEffect } from 'react';
-import { AppState, StyleSheet, Text, View } from 'react-native';
+import { AppState, StyleSheet, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import Svg, { Path } from 'react-native-svg';
 
 import { holdStick, releaseStick } from '../robot/drive';
 import { colors } from './theme';
 
-const SIZE = 150; // the ring, on screen
-const KNOB = 64;
+const SIZE = 136; // the ring, on screen
+const KNOB = 56;
 const TRAVEL = (SIZE - KNOB) / 2; // how far the knob's centre may move from the ring's centre
+const EDGE = 1.5; // the ring's edge
+const RING = 'rgba(255,255,255,0.88)';
+const ARROW = '#9aa6a2'; // the arrows' grey, as in the design
+// Four small triangles 14 px in from the ring's edge, pointing out.
+const MID = SIZE / 2;
+const ARROWS = `M${MID} 14l-6 8h12z M${MID} ${SIZE - 14}l-6 -8h12z M14 ${MID}l8 -6v12z M${SIZE - 14} ${MID}l-8 -6v12z`;
 
 export function Joystick({ enabled }: { enabled: boolean }) {
   const knobX = useSharedValue(0);
@@ -74,8 +82,9 @@ export function Joystick({ enabled }: { enabled: boolean }) {
         accessibilityRole="adjustable"
         accessibilityLabel="Joystick: hold and push up to drive forward, sideways to turn"
       >
-        <Text style={[styles.arrow, styles.up]}>▲</Text>
-        <Text style={[styles.arrow, styles.down]}>▼</Text>
+        <Svg width={SIZE} height={SIZE} style={styles.arrows} accessible={false} pointerEvents="none">
+          <Path d={ARROWS} fill={ARROW} />
+        </Svg>
         <Animated.View style={[styles.knob, knobStyle]} pointerEvents="none" />
       </View>
     </GestureDetector>
@@ -87,23 +96,28 @@ const styles = StyleSheet.create({
     width: SIZE,
     height: SIZE,
     borderRadius: SIZE / 2,
-    backgroundColor: 'rgba(17,24,39,0.35)',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.85)',
+    backgroundColor: RING,
+    borderWidth: EDGE,
+    borderColor: colors.field,
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 4,
+    shadowColor: colors.text,
+    shadowOpacity: 0.16,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 6 },
   },
   disabled: { opacity: 0.4 },
+  arrows: { position: 'absolute', left: -EDGE, top: -EDGE },
   knob: {
     width: KNOB,
     height: KNOB,
     borderRadius: KNOB / 2,
-    backgroundColor: colors.primary,
-    borderWidth: 3,
-    borderColor: '#ffffff',
-    elevation: 4,
+    backgroundColor: colors.info,
+    elevation: 6,
+    shadowColor: colors.info,
+    shadowOpacity: 0.4,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
   },
-  arrow: { position: 'absolute', color: 'rgba(255,255,255,0.9)', fontSize: 14 },
-  up: { top: 8 },
-  down: { bottom: 8 },
 });

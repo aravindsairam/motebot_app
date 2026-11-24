@@ -1,6 +1,7 @@
 // Cleaning in words and numbers, as the screens show it: the live numbers ("43 %", "9.1 m²",
 // "38 m", "6:10"), where the robot is ("Row 12 of 31 · 6 min left"), the estimate before a clean,
-// the report card at the end, and the lines of the History tab. Plain data in, text out.
+// the report card at the end, and the History tab: its totals, its cleans under their days, and
+// one past clean's page. Plain data in, text out.
 
 import type { CleaningEstimate, CleaningJob, CleaningRecord, CleaningState, CleaningStatus, CleaningTotals } from '../transport/messages';
 import { type Notice, sentence } from './actionsStore';
@@ -159,26 +160,43 @@ export function cleaningReport(status: CleaningStatus): Notice | null {
   }
 }
 
-/** The History tab's top line: "23 cleans · 412 m² · 5 h 10 min · 1.5 km". */
+/** The History tab's totals in one line: "23 cleans · 412 m² · 5 h 10 min · 1.5 km". */
 export function totalsText(t: CleaningTotals): string {
   if (t.cleans === 0) return 'No cleans yet';
   return `${t.cleans} ${t.cleans === 1 ? 'clean' : 'cleans'} · ${areaText(t.area)} · ${durationText(t.time)} · ${distanceText(t.distance)}`;
 }
 
+/** The same totals as four numbers, each with its word: "23" cleans, "412 m²" cleaned, ... */
+export function totalsNumbers(t: CleaningTotals): { value: string; label: string }[] {
+  return [
+    { value: String(t.cleans), label: t.cleans === 1 ? 'clean' : 'cleans' },
+    { value: areaText(t.area), label: 'cleaned' },
+    { value: durationText(t.time), label: 'time' },
+    { value: distanceText(t.distance), label: 'driven' },
+  ];
+}
+
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-/** When a clean started, in the phone's time: "Today 10:42", "Yesterday 18:03", "Mon 16 Nov 09:15". */
-export function whenText(secondsSince1970: number, nowMs: number): string {
+/** When a clean started, in the phone's time, as its day and its clock: "Today" and "10:42",
+ *  "Yesterday" and "18:03", "Mon 16 Nov" and "09:15", "Wed 31 Dec 2025" and "08:00". */
+export function dayAndClock(secondsSince1970: number, nowMs: number): { day: string; clock: string } {
   const d = new Date(secondsSince1970 * 1000);
   const now = new Date(nowMs);
   const clock = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   const dayStart = (x: Date) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
   const days = Math.round((dayStart(now) - dayStart(d)) / 86_400_000);
-  if (days === 0) return `Today ${clock}`;
-  if (days === 1) return `Yesterday ${clock}`;
+  if (days === 0) return { day: 'Today', clock };
+  if (days === 1) return { day: 'Yesterday', clock };
   const year = d.getFullYear() !== now.getFullYear() ? ` ${d.getFullYear()}` : '';
-  return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}${year} ${clock}`;
+  return { day: `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}${year}`, clock };
+}
+
+/** When a clean started, in the phone's time: "Today 10:42", "Yesterday 18:03", "Mon 16 Nov 09:15". */
+export function whenText(secondsSince1970: number, nowMs: number): string {
+  const { day, clock } = dayAndClock(secondsSince1970, nowMs);
+  return `${day} ${clock}`;
 }
 
 /** How a clean ended, in a word. */
@@ -195,15 +213,32 @@ export function endedLabel(state: CleaningState): string {
   }
 }
 
-/** One past clean on the History tab. */
-export function historyLine(record: CleaningRecord, nowMs: number): { when: string; what: string; numbers: string; ended: string } {
+/** One past clean on the History tab. `time` is the clock alone, for a line under its day. */
+export function historyLine(
+  record: CleaningRecord,
+  nowMs: number,
+): { when: string; time: string; what: string; numbers: string; ended: string } {
   const s = record.status;
   return {
     when: whenText(record.started, nowMs),
+    time: dayAndClock(record.started, nowMs).clock,
     what: targetLabel(s.target),
     numbers: `${areaText(s.cleanedArea)} · ${percentText(s.coverage)} · ${durationText(s.cleaningTime)}`,
     ended: endedLabel(s.state),
   };
+}
+
+/** The History tab's cleans under the day each started ("Today", "Yesterday", "Mon 16 Nov"), in
+ *  the order the robot sent them (newest first). */
+export function historyDays(records: CleaningRecord[], nowMs: number): { day: string; records: CleaningRecord[] }[] {
+  const days: { day: string; records: CleaningRecord[] }[] = [];
+  for (const record of records) {
+    const { day } = dayAndClock(record.started, nowMs);
+    const last = days[days.length - 1];
+    if (last && last.day === day) last.records.push(record);
+    else days.push({ day, records: [record] });
+  }
+  return days;
 }
 
 /** "Twice · with the edges · then back to the dock", from a job as it was sent. */
@@ -214,29 +249,33 @@ export function jobOptionsText(job: CleaningJob): string {
   return parts.join(' · ');
 }
 
-/** The numbers of one past clean, as label and value, for its page on the History tab. */
-export function recordRows(status: CleaningStatus): { label: string; value: string }[] {
-  const reason = reasonOf(status);
-  const how =
-    status.state === 'finished'
-      ? 'Finished'
-      : status.state === 'stopped'
-        ? `Stopped${reason ? `: ${reason}` : ''}`
-        : status.state === 'failed'
-          ? `Didn't finish${reason ? `: ${reason}` : ''}`
-          : status.state;
-  const rows: { label: string; value: string }[] = [
-    { label: 'How it ended', value: how },
-    { label: 'Cleaned', value: `${areaText(status.cleanedArea)} of ${areaText(status.plannedArea)} (${percentText(status.coverage)})` },
-    { label: 'Time cleaning', value: durationText(status.cleaningTime) },
-    { label: 'Driven', value: distanceText(status.distance) },
-    { label: 'Rows', value: `${status.rowsDone} of ${status.rowsTotal}${status.rowsSkipped ? `, ${status.rowsSkipped} skipped` : ''}` },
+/** One past clean's page on the History tab: how it ended in a word ("done", "stopped",
+ *  "failed"), the robot's reason when it stopped or failed (empty when it gave none), the options
+ *  it was sent with, and its numbers. Each number is a big value and, under it, the rest:
+ *  "9.1 m²" and "of 21 m² (43 %)". */
+export function recordView(status: CleaningStatus): {
+  ended: string;
+  reason: string;
+  options: string;
+  numbers: { label: string; value: string; more: string }[];
+} {
+  const ofTotal = (done: number, total: number, skipped: number) => ({
+    value: `${done} of ${total}`,
+    more: skipped ? `${skipped} skipped` : '',
+  });
+  const numbers: { label: string; value: string; more: string }[] = [
+    { label: 'Cleaned', value: areaText(status.cleanedArea), more: `of ${areaText(status.plannedArea)} (${percentText(status.coverage)})` },
+    { label: 'Time cleaning', value: durationText(status.cleaningTime), more: '' },
+    { label: 'Driven', value: distanceText(status.distance), more: '' },
+    { label: 'Rows', ...ofTotal(status.rowsDone, status.rowsTotal, status.rowsSkipped) },
   ];
-  if (status.edgesTotal > 0) {
-    rows.push({ label: 'Edges', value: `${status.edgesDone} of ${status.edgesTotal}${status.edgesSkipped ? `, ${status.edgesSkipped} skipped` : ''}` });
-  }
-  if (status.bumps > 0) rows.push({ label: 'Bumps', value: String(status.bumps) });
-  if (status.pauses > 0) rows.push({ label: 'Pauses', value: String(status.pauses) });
-  rows.push({ label: 'Options', value: jobOptionsText(status.job) });
-  return rows;
+  if (status.edgesTotal > 0) numbers.push({ label: 'Edges', ...ofTotal(status.edgesDone, status.edgesTotal, status.edgesSkipped) });
+  if (status.bumps > 0) numbers.push({ label: 'Bumps', value: String(status.bumps), more: '' });
+  if (status.pauses > 0) numbers.push({ label: 'Pauses', value: String(status.pauses), more: '' });
+  return {
+    ended: endedLabel(status.state),
+    reason: status.state === 'stopped' || status.state === 'failed' ? sentence(reasonOf(status)) : '',
+    options: jobOptionsText(status.job),
+    numbers,
+  };
 }

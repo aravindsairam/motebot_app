@@ -1,8 +1,9 @@
 // The map's cleaning layers, drawn inside the map's picture (one unit = one map cell, y down):
-// the floor cleaned so far as one tinted picture, the rows (as planned, or still to drive), and
-// the area or spot being marked while choosing what to clean.
+// the floor cleaned so far as one teal tinted picture, the rows (as planned, or still to drive), and
+// the area or spot being marked while choosing what to clean. The area's corners are white handles
+// edged in its colour.
 
-import { AlphaType, Circle, ColorType, FilterMode, Group, Image, MipmapMode, Path, Rect, Skia, vec } from '@shopify/react-native-skia';
+import { AlphaType, BlendColor, Circle, ColorType, FilterMode, Group, Image, MipmapMode, Path, Rect, Skia, vec } from '@shopify/react-native-skia';
 import { useMemo } from 'react';
 import { type SharedValue, useDerivedValue } from 'react-native-reanimated';
 
@@ -14,11 +15,15 @@ import { colors } from './theme';
 
 const ROW_COLOR = colors.cleaning;
 const EDGE_COLOR = '#d97706';
-const TRANSIT_COLOR = '#6b7280';
-const MARK_FILL = 'rgba(14,116,144,0.12)';
+const TRANSIT_COLOR = colors.faint;
+const MARK_FILL = 'rgba(11,107,115,0.10)'; // the teal at 10 %, as in the design
+// The cleaned cells come from the robot about 43 % opaque; painted teal at this strength they end
+// up near the design's 24 % tint.
+const CLEANED_TINT = 'rgba(11,107,115,0.56)';
 const HANDLE_RADIUS_PX = 9; // on screen: a corner the thumb can find
+const HANDLE_EDGE_PX = 2.5; // on screen: the handle's coloured edge
 
-/** The cleaned floor: the robot's grid as one picture, tinted where cleaned. */
+/** The cleaned floor: the robot's grid as one picture, tinted teal where cleaned. */
 export function CleanedLayer({ map, cleaned }: { map: MapPlacement; cleaned: CleanedArea }) {
   const image = useMemo(() => {
     const data = Skia.Data.fromBytes(cleanedToRgba(cleaned));
@@ -39,7 +44,9 @@ export function CleanedLayer({ map, cleaned }: { map: MapPlacement; cleaned: Cle
       height={at.height}
       fit="fill"
       sampling={{ filter: FilterMode.Nearest, mipmap: MipmapMode.None }}
-    />
+    >
+      <BlendColor color={CLEANED_TINT} mode="srcIn" />
+    </Image>
   );
 }
 
@@ -100,6 +107,7 @@ export function AreaLayer({
   const opacity = useDerivedValue(() => (area.value ? 1 : 0));
   const line = useDerivedValue(() => 2 / scale.value);
   const handle = useDerivedValue(() => HANDLE_RADIUS_PX / scale.value);
+  const handleEdge = useDerivedValue(() => HANDLE_EDGE_PX / scale.value);
   const c0 = useDerivedValue(() => vec(area.value?.x0 ?? 0, area.value?.y0 ?? 0));
   const c1 = useDerivedValue(() => vec(area.value?.x1 ?? 0, area.value?.y0 ?? 0));
   const c2 = useDerivedValue(() => vec(area.value?.x1 ?? 0, area.value?.y1 ?? 0));
@@ -111,7 +119,7 @@ export function AreaLayer({
       {[c0, c1, c2, c3].map((c, i) => (
         <Group key={i}>
           <Circle c={c} r={handle} color="#ffffff" />
-          <Circle c={c} r={handle} color={edge} style="stroke" strokeWidth={line} />
+          <Circle c={c} r={handle} color={edge} style="stroke" strokeWidth={handleEdge} />
         </Group>
       ))}
     </Group>
