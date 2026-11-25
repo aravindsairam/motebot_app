@@ -1,5 +1,5 @@
 // The robot's camera, live. Connected only while it is on screen (large, or in the corner
-// window), so the PC encodes video only while someone looks at it. If the video fails it says
+// window, with the Home tab open), so the PC encodes video only while someone looks at it. If the video fails it says
 // why and tries again every few seconds. Large, a white "Camera" pill names it at the top left;
 // in the corner window, a small dark one at the bottom left.
 

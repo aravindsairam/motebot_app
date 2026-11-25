@@ -39,15 +39,16 @@ export function ConnectedTabs() {
           tabBarLabelStyle: { fontSize: 12, fontWeight: '700', marginTop: 2 },
           tabBarItemStyle: { paddingHorizontal: 0, paddingTop: 6 },
           tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.line },
+          // A tab is frozen while another is open: tabs stay mounted, and redrawing one nobody
+          // sees kept the phone busy for nothing. Shown again, it draws the latest.
+          freezeOnBlur: true,
         }}
       >
         <Tab.Screen name="Home" component={MapScreen} options={{ tabBarIcon: icon('home') }} />
         {/* The tab bar makes way for the keyboard, so the chat keeps its room. */}
         <Tab.Screen name="Ask" component={AskScreen} options={{ tabBarHideOnKeyboard: true, tabBarIcon: icon('ask') }} />
         <Tab.Screen name="History" component={HistoryScreen} options={{ tabBarIcon: icon('history') }} />
-        {/* Frozen while another tab is open: it shows only the robot's details, and redrawing them
-            in the background kept the phone busy for nothing. Shown again, it draws the latest. */}
-        <Tab.Screen name="Robot" component={RobotScreen} options={{ tabBarIcon: icon('robot'), freezeOnBlur: true }} />
+        <Tab.Screen name="Robot" component={RobotScreen} options={{ tabBarIcon: icon('robot') }} />
       </Tab.Navigator>
     </NavigationContainer>
   );

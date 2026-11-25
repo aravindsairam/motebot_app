@@ -2,6 +2,7 @@
 // the corner to swap), the joystick while the phone drives, and the buttons. While a clean runs,
 // its numbers under the strip; while the robot explores, the exploration's.
 
+import { useIsFocused } from '@react-navigation/native';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -16,11 +17,12 @@ import { colors } from '../ui/theme';
 export function MapScreen() {
   const { controls, cleaning } = useRobotActions();
   const starting = useActions((s) => s.busy === 'clean');
+  const onScreen = useIsFocused(); // false while another tab is open: then the camera is not watched
   return (
     <SafeAreaView style={styles.screen} edges={['left', 'right']}>
       <StatusStrip />
       {cleaning.running || starting ? <CleaningPanel starting={starting} /> : <ExploringPanel />}
-      <Stage joystick={controls.joystick} />
+      <Stage joystick={controls.joystick} onScreen={onScreen} />
       <RobotActionBar main />
     </SafeAreaView>
   );

@@ -42,7 +42,8 @@ function placeKey(c: Corner, width: number, height: number): string {
   return `${c} ${width} ${height}`;
 }
 
-export function Stage({ joystick }: { joystick: { shown: boolean; enabled: boolean } }) {
+/** `onScreen`: the tab this is on is the open one. */
+export function Stage({ joystick, onScreen }: { joystick: { shown: boolean; enabled: boolean }; onScreen: boolean }) {
   const { big, cornerShown, corner } = useStage();
   const pickingPoint = useTrip((s) => s.picking);
   const choosing = useChoice((s) => s.open);
@@ -159,7 +160,7 @@ export function Stage({ joystick }: { joystick: { shown: boolean; enabled: boole
         <MapView small={big !== 'map'} />
       </Animated.View>
       <Animated.View style={[place('camera'), cameraMove]}>
-        <CameraView small={big !== 'camera'} active={big === 'camera' || showSmall} />
+        <CameraView small={big !== 'camera'} active={onScreen && (big === 'camera' || showSmall)} />
       </Animated.View>
 
       {showSmall ? (
