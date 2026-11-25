@@ -91,6 +91,7 @@ import { goToPin, placePin, stopPicking } from '../robot/trip';
 import { useTrip } from '../robot/tripStore';
 import { useExploring } from '../robot/exploringStore';
 import { tripView } from '../robot/tripView';
+import { sameData, useWatched } from '../robot/watched';
 import { openZoneEditor, setZoneBox, tapZones, useZoneEdit, whyNoZoneEdit, zoneBox } from '../robot/zones';
 import { type MapData, type Pose, sameGoal } from '../transport/messages';
 import { AreaLayer, CleanedLayer, PlanLayer, SpotLayer } from './CleaningLayers';
@@ -236,8 +237,38 @@ function ExploringKey() {
   );
 }
 
-export function MapView({ small = false }: { small?: boolean }) {
+/** What the map draws from the robot's state, its cleaning status, the newest trip and the time. */
+function shownNow() {
+  const now = Date.now();
+  const { connection, robotState, navigation } = useRobot.getState();
+  const cleaning = useCleaning.getState().status;
+  const connected = connection.kind === 'connected';
+  const state = robotState?.value ?? null;
+  const robotLive = connected && isFresh(robotState, now);
+  const job = cleaning?.value ?? null;
+  return {
+    robotLive,
+    running: cleaningControlsFor(state, robotLive, connected, job, connected && isFresh(cleaning, now)).running,
+    jobId: job?.jobId ?? null,
+    jobState: job?.state ?? null,
+    piece: job?.piece ?? null,
+    tripActive: tripView(navigation, state?.state ?? '', now).active,
+    tripGoal: navigation ? navigation.value.goalId.join() : '',
+    poseLive: connected && livePose.at > 0 && now - livePose.at < POSE_STALE_AFTER_MS,
+    robotKnown: livePose.at > 0,
+  };
+}
+
+/** How long ago the robot's position last came: counts up by itself while it is shown. */
+function LastSeen() {
   const now = useNow(500);
+  return <Text style={styles.labelText}>Robot last seen {ageText(now - livePose.at)}</Text>;
+}
+
+export function MapView({ small = false }: { small?: boolean }) {
+  // The robot's messages come several times a second; the map is drawn again only when something
+  // it shows has changed.
+  const shown = useWatched(shownNow, sameData);
   const connected = useRobot((s) => s.connection.kind === 'connected');
   const mapEntry = useRobot((s) => s.map);
   const currentMap = useRobot((s) => s.robotState?.value.currentMap ?? '');
@@ -248,12 +279,9 @@ export function MapView({ small = false }: { small?: boolean }) {
   });
   const frontiers = useExploring((s) => s.frontiers);
   const route = useRobot((s) => s.route);
-  const navigation = useRobot((s) => s.navigation);
   const zones = useRobot((s) => s.zones);
   const { picking, pin, goal } = useTrip();
   const busy = useActions((s) => s.busy);
-  const robotState = useRobot((s) => s.robotState);
-  const cleaningStatus = useCleaning((s) => s.status);
   const cleaningPlan = useCleaning((s) => s.plan);
   const cleanedEntry = useCleaning((s) => s.cleaned);
   const choice = useChoice();
@@ -357,9 +385,7 @@ export function MapView({ small = false }: { small?: boolean }) {
   }, [map]);
 
   // Cleaning: choosing (the preview, the area or spot being marked) or a clean under way.
-  const robotLive = connected && isFresh(robotState, now);
-  const statusLive = connected && isFresh(cleaningStatus, now);
-  const { running } = cleaningControlsFor(robotState?.value ?? null, robotLive, connected, cleaningStatus?.value ?? null, statusLive);
+  const { robotLive, running } = shown;
   const choosing = choice.open && !running && !small;
   const marking = choosing && (choice.kind === 'area' || choice.kind === 'spot') ? choice.kind : null;
   const editingZones = zoneEdit.open && !small;
@@ -368,7 +394,8 @@ export function MapView({ small = false }: { small?: boolean }) {
   const pickedBox = pickedZone ? zoneBox(pickedZone.points) : null;
   // A rectangle follows the finger: the area being marked, the zone picked, or the zone being added.
   const boxEditing = marking === 'area' || (editingZones && (zoneEdit.adding || pickedBox !== null));
-  const status = cleaningStatus?.value ?? null;
+  // The status as it is now: `shown` has asked for this redraw if a part drawn here has changed.
+  const status = shown.jobId === null ? null : (useCleaning.getState().status?.value ?? null);
   // Worked out again only when what is shown changes (the status comes five times a second, but
   // the rows still to drive change once a row): the rows' drawing is then kept as it is.
   const piecesFrom = status?.state === 'starting' ? 0 : (status?.piece ?? 0);
@@ -495,7 +522,9 @@ export function MapView({ small = false }: { small?: boolean }) {
   const gestures = useSimultaneousGestures(pan, pinch, tap);
 
   // The trip: the route Nav2 planned and the goal, while a trip is under way.
-  const trip = tripView(navigation, mode, now);
+  const trip = { active: shown.tripActive };
+  // The trip as it is now: `shown` has asked for this redraw if it started, ended or got another goal.
+  const navigation = shown.tripActive ? useRobot.getState().navigation : null;
   const routePath = useMemo(() => {
     if (!map || !route || !trip.active || route.value.points.length < 4) return null;
     const builder = Skia.PathBuilder.Make();
@@ -589,8 +618,7 @@ export function MapView({ small = false }: { small?: boolean }) {
   const pinProblem = picking && pin ? pin.problem : null;
   const canGo = pin !== null && pinProblem === null && busy === null && connected;
 
-  const poseLive = connected && livePose.at > 0 && now - livePose.at < POSE_STALE_AFTER_MS;
-  const robotKnown = livePose.at > 0;
+  const { poseLive, robotKnown } = shown;
   const label = mode === 'exploring' ? 'Exploring: making a new map' : makingMap ? 'Making a new map' : currentMap ? `Map: ${currentMap}` : '';
 
   function onLayout(e: LayoutChangeEvent) {
@@ -774,7 +802,7 @@ export function MapView({ small = false }: { small?: boolean }) {
           </View>
         ) : robotKnown && !poseLive ? (
           <View style={styles.label}>
-            <Text style={styles.labelText}>Robot last seen {ageText(now - livePose.at)}</Text>
+            <LastSeen />
           </View>
         ) : null}
         {exploring && !picking ? <ExploringKey /> : null}

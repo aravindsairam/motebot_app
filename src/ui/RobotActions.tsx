@@ -20,10 +20,11 @@ import { closeRoomEditor } from '../robot/rooms';
 import { isFresh, useRobot } from '../robot/store';
 import { startPicking, stopPicking } from '../robot/trip';
 import { forgetGoal, useTrip } from '../robot/tripStore';
+import { sameData, useWatched } from '../robot/watched';
 import { closeZoneEditor, useZoneEdit } from '../robot/zones';
 import { ActionBar, type BarButton } from './ActionBar';
 import { CleanChooserBar } from './CleanChooser';
-import { Button, useNow } from './parts';
+import { Button } from './parts';
 import { RoomEditorBar } from './RoomEditor';
 import { SaveMapDialog } from './SaveMapDialog';
 import { ZoneEditorBar } from './ZoneEditor';
@@ -37,15 +38,26 @@ export function confirmLeavingMapping(title: string, what: string, confirm: stri
   ]);
 }
 
-export function useRobotActions() {
-  const now = useNow();
-  const connected = useRobot((s) => s.connection.kind === 'connected');
-  const robotState = useRobot((s) => s.robotState);
-  const { busy, notice } = useActions();
-  const cleaningStatus = useCleaning((s) => s.status);
+/** Which buttons are usable now: from the robot's state, its cleaning status and how fresh they are. */
+function usableNow() {
+  const now = Date.now();
+  const { connection, robotState } = useRobot.getState();
+  const cleaningStatus = useCleaning.getState().status;
+  const connected = connection.kind === 'connected';
   const live = connected && isFresh(robotState, now);
-  const controls = controlsFor(robotState?.value ?? null, live, connected);
-  const cleaning = cleaningControlsFor(robotState?.value ?? null, live, connected, cleaningStatus?.value ?? null, connected && isFresh(cleaningStatus, now));
+  const state = robotState?.value ?? null;
+  return {
+    connected,
+    live,
+    controls: controlsFor(state, live, connected),
+    cleaning: cleaningControlsFor(state, live, connected, cleaningStatus?.value ?? null, connected && isFresh(cleaningStatus, now)),
+  };
+}
+
+export function useRobotActions() {
+  // The robot repeats its state twice a second; the buttons change only when it says something new.
+  const { connected, live, controls, cleaning } = useWatched(usableNow, sameData);
+  const { busy, notice } = useActions();
 
   function stop() {
     if (controls.stop.halts) {
