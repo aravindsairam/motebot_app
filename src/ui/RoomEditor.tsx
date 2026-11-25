@@ -2,6 +2,8 @@
 // rooms and Name by looking, what is going on, the rooms with their areas (tap one to rename it or,
 // from the same dialog, to delete it), Cancel and Save. Nothing changes on the robot until Save;
 // when the robot says no, the message card says why. Stop stays below, as on every screen.
+// Join and Split are on the map (MapView.tsx); with Join in hand a tap on a tile picks that room,
+// and the one picked is edged in teal.
 //
 // The two tools are outlined buttons side by side; the rooms are tiles two to a row, the name on
 // the left and the area on the right.
@@ -15,13 +17,13 @@ import {
   deleteRoom,
   findRoomsOnMap,
   nameRoomsByLooking,
+  pickRoom,
   renameRoom,
   roomAreaText,
   roomEditLine,
   roomNameProblem,
   sameRooms,
   saveRooms,
-  startRenaming,
   stopRenaming,
 } from '../robot/rooms';
 import { isFresh, useRobot } from '../robot/store';
@@ -122,11 +124,12 @@ function RoomPanel() {
                 return (
                   <Pressable
                     key={i}
-                    style={({ pressed }) => [styles.room, busy && styles.off, pressed && !busy && styles.pressed]}
-                    onPress={() => startRenaming(i)}
-                    disabled={busy}
+                    style={({ pressed }) => [styles.room, r.picked === i && styles.roomPicked, busy && styles.off, pressed && !busy && styles.pressed]}
+                    onPress={() => void pickRoom(i)}
+                    disabled={busy || r.tool === 'split'}
                     accessibilityRole="button"
-                    accessibilityLabel={`Rename ${room.name}`}
+                    accessibilityLabel={r.tool === 'join' ? `Join ${room.name}` : `Rename ${room.name}`}
+                    accessibilityState={{ selected: r.picked === i }}
                   >
                     <Text style={styles.roomName} numberOfLines={1}>
                       {room.name}
@@ -220,6 +223,7 @@ const styles = StyleSheet.create({
     backgroundColor: TILE,
     paddingHorizontal: spacing.m,
   },
+  roomPicked: { borderColor: colors.primary, backgroundColor: colors.primarySoft },
   roomName: { flex: 1, fontSize: 14, fontWeight: '600', color: colors.text },
   roomArea: { fontSize: 12, fontWeight: '500', color: colors.muted, fontVariant: ['tabular-nums'] },
 });

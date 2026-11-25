@@ -26,7 +26,7 @@ export interface Reply {
   replanned: boolean; // PreviewCleaning of a saved plan whose map has changed: its rows were planned again
   jobId: number; // StartCleaning or StartExploration, when accepted: the job's number, as in its status; 0 otherwise
   answer: AssistantAnswer | null; // AskAssistant
-  rooms: Rooms | null; // FindRooms, NameRooms: the rooms proposed
+  rooms: Rooms | null; // FindRooms, EditRooms, NameRooms: the rooms proposed
 }
 
 const RESULTS: Record<number, ReplyResult> = {
@@ -827,6 +827,16 @@ export function encodeFindRooms(requestId: number): Uint8Array {
 /** Replace the rooms of map `mapName` (the one in use) with these; an empty list deletes them all. */
 export function encodeSetRooms(requestId: number, mapName: string, rooms: readonly Room[]): Uint8Array {
   return pb.SetRooms.encode({ requestId, mapName, rooms: rooms.map(roomMessage) }).finish();
+}
+
+/** A change to the rooms by hand: two rooms to join, by their places in the list, or a line (x0, y0,
+ *  x1, y1, metres) to cut a room in two along. */
+export type RoomsChange = { join: [number, number] } | { cut: [number, number, number, number] };
+
+/** Join two of these rooms, or cut one in two: answered with the rooms as they are then, not saved. */
+export function encodeEditRooms(requestId: number, rooms: readonly Room[], change: RoomsChange): Uint8Array {
+  const what = 'join' in change ? { join: [...change.join] } : { cutCm: change.cut.map(toCm) };
+  return pb.EditRooms.encode({ requestId, rooms: rooms.map(roomMessage), ...what }).finish();
 }
 
 /** Name these rooms by looking: the robot drives to each one. Answered with the same rooms, named. */

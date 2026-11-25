@@ -28,6 +28,9 @@
 // Rooms: each saved room's name, small and light, at its open spot; no outlines, to keep the map
 // clean. "Rooms" opens the editor (rooms.ts): then each room's outline is drawn thin in teal, and a
 // tap on a room or its name renames it. The names are hidden while the zones are being changed.
+// While the rooms are changed, Join and Split float beside Fit: with Join in hand a tap picks a
+// room (it fills light teal; the second one tapped joins the two), with Split in hand two taps set
+// the ends of a line (the first shows as a dot) and the room there is split along it.
 //
 // Exploring: the places still to look at as dashed blue rings, the one the robot is going to as a
 // solid ring, and a small key to both at the top left.
@@ -82,7 +85,7 @@ import { livePose, POSE_STALE_AFTER_MS } from '../robot/live';
 import { angleOnPicture, cellsToRgba, fitView, fromPicture, type MapPlacement, toPicture, zoomAbout } from '../robot/mapPicture';
 import { clearMark, useMark } from '../robot/markStore';
 import { useRoomEdit } from '../robot/roomEditStore';
-import { openRoomEditor, startRenaming, tapRooms } from '../robot/rooms';
+import { openRoomEditor, pickRoom, roomToolPrompt, tapRooms, toggleRoomTool } from '../robot/rooms';
 import { isFresh, useRobot } from '../robot/store';
 import { goToPin, placePin, stopPicking } from '../robot/trip';
 import { useTrip } from '../robot/tripStore';
@@ -120,6 +123,8 @@ const EXPLORE_GOAL_RADIUS_PX = 10; // the place the explorer is going to: a ring
 const EXPLORE_GOAL_FILL = 'rgba(31,111,178,0.14)'; // the exploring blue at 14 %
 const MARK_COLOR = colors.mark; // a place the robot pointed to in the chat
 const ROOM_EDGE = colors.primary; // the rooms' outlines while they are being changed
+const ROOM_PICKED = 'rgba(11,107,115,0.20)'; // the first room picked for a join: the teal at 20 %
+const SPLIT_END_PX = 5; // on screen: the first end of a split line, a teal dot ringed in white
 const GREYED = 'rgba(242,244,243,0.55)'; // over the map while the connection is lost: the ground, see-through
 const NOTE_TEXT = '#3e4a47'; // the design's text in the white notes over the map
 const PROMPT_SHADOW = { elevation: 4, shadowColor: colors.text, shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } };
@@ -189,16 +194,24 @@ function MapTool({
   onPress,
   accessibilityLabel,
   blocked = false,
+  inHand = false,
 }: {
   icon: IconName;
   label: string;
   onPress: () => void;
   accessibilityLabel?: string;
   blocked?: boolean;
+  inHand?: boolean; // the tool is the one in use: teal, and a tap puts it away
 }) {
-  const tint = blocked ? colors.faint : colors.text;
+  const tint = blocked ? colors.faint : inHand ? '#ffffff' : colors.text;
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={accessibilityLabel} onPress={onPress} style={({ pressed }) => [styles.tool, pressed && styles.pressed]}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ selected: inHand, disabled: blocked }}
+      onPress={onPress}
+      style={({ pressed }) => [styles.tool, inHand && styles.toolInHand, pressed && styles.pressed]}
+    >
       <Icon name={icon} size={18} color={tint} strokeWidth={1.9} />
       <Text style={[styles.toolText, { color: tint }]}>{label}</Text>
     </Pressable>
@@ -472,7 +485,7 @@ export function MapView({ small = false }: { small?: boolean }) {
       const py = (e.y - ty.value) / scale.value;
       const p = fromPicture(map, px, py);
       clearMark(); // a tap elsewhere: the place shown from the chat has been seen
-      if (useRoomEdit.getState().open) tapRooms(p.x, p.y);
+      if (useRoomEdit.getState().open) void tapRooms(p.x, p.y);
       else if (useZoneEdit.getState().open) tapZones(p.x, p.y);
       else if (useTrip.getState().picking) placePin(p.x, p.y);
       else if (marking === 'spot') placeSpot(p.x, p.y);
@@ -549,6 +562,17 @@ export function MapView({ small = false }: { small?: boolean }) {
     for (const room of roomEdit.draft) if (room.points.length >= 6) addPolygon(builder, map, room.points);
     return builder.build();
   }, [map, editingRooms, roomEdit.draft]);
+  // Join: the first room picked. Split: the first end of the line.
+  const roomPicked = editingRooms && roomEdit.picked !== null ? (roomEdit.draft[roomEdit.picked] ?? null) : null;
+  const roomPickedPath = useMemo(() => {
+    if (!map || !roomPicked || roomPicked.points.length < 6) return null;
+    const builder = Skia.PathBuilder.Make();
+    addPolygon(builder, map, roomPicked.points);
+    return builder.build();
+  }, [map, roomPicked]);
+  const splitFrom = map && editingRooms && roomEdit.from ? toPicture(map, roomEdit.from.x, roomEdit.from.y) : null;
+  const splitEnd = useDerivedValue(() => SPLIT_END_PX / scale.value);
+  const splitRing = useDerivedValue(() => (SPLIT_END_PX + 2) / scale.value);
 
   // A place shown from the chat. Off the screen (the map was moved or zoomed), the whole map.
   const markPic = map && mark && !small ? toPicture(map, mark.x, mark.y) : null;
@@ -604,7 +628,14 @@ export function MapView({ small = false }: { small?: boolean }) {
                   </Path>
                 </Group>
               ) : null}
+              {roomPickedPath ? <Path path={roomPickedPath} color={ROOM_PICKED} /> : null}
               {roomPath ? <Path path={roomPath} style="stroke" strokeWidth={roomLine} color={ROOM_EDGE} strokeJoin="round" /> : null}
+              {splitFrom ? (
+                <Group>
+                  <Circle cx={splitFrom.px} cy={splitFrom.py} r={splitRing} color="#ffffff" />
+                  <Circle cx={splitFrom.px} cy={splitFrom.py} r={splitEnd} color={ROOM_EDGE} />
+                </Group>
+              ) : null}
               <PlanLayer map={map} pieces={pieces} scale={scale} faded={fading} />
               {pickedPath ? <Path path={pickedPath} style="stroke" strokeWidth={zoneLine} color={colors.zone} /> : null}
               {marking === 'area' ? <AreaLayer area={areaPic} scale={scale} /> : null}
@@ -673,7 +704,7 @@ export function MapView({ small = false }: { small?: boolean }) {
           map={map}
           view={{ scale, tx, ty }}
           chosen={roomsChosen}
-          onPress={editingRooms && roomEdit.work === null ? startRenaming : undefined}
+          onPress={editingRooms && roomEdit.work === null && roomEdit.tool !== 'split' ? (i) => void pickRoom(i) : undefined}
         />
       ) : null}
 
@@ -686,6 +717,26 @@ export function MapView({ small = false }: { small?: boolean }) {
             <>
               <MapTool icon="zones" label="Zones" accessibilityLabel="Change the no-go zones" onPress={editZones} blocked={zoneEditBlocked !== null} />
               <MapTool icon="rooms" label="Rooms" accessibilityLabel="Change the rooms" onPress={editRooms} blocked={zoneEditBlocked !== null} />
+            </>
+          ) : null}
+          {editingRooms && connected ? (
+            <>
+              <MapTool
+                icon="join"
+                label="Join"
+                accessibilityLabel="Join two rooms into one"
+                onPress={() => toggleRoomTool('join')}
+                blocked={roomEdit.work !== null || roomEdit.draft.length < 2}
+                inHand={roomEdit.tool === 'join'}
+              />
+              <MapTool
+                icon="split"
+                label="Split"
+                accessibilityLabel="Split a room in two"
+                onPress={() => toggleRoomTool('split')}
+                blocked={roomEdit.work !== null || roomEdit.draft.length < 1}
+                inHand={roomEdit.tool === 'split'}
+              />
             </>
           ) : null}
         </View>
@@ -703,7 +754,9 @@ export function MapView({ small = false }: { small?: boolean }) {
         ) : editingRooms ? (
           <View style={styles.note}>
             <Text style={styles.noteText}>
-              {roomEdit.work !== null ? 'Wait for the robot…' : roomEdit.draft.length > 0 ? 'Tap a room to rename it' : 'Find rooms to split the map'}
+              {roomEdit.work !== null
+                ? 'Wait for the robot…'
+                : (roomToolPrompt(roomEdit) ?? (roomEdit.draft.length > 0 ? 'Tap a room to rename it' : 'Find rooms to split the map'))}
             </Text>
           </View>
         ) : cleanPrompt ? (
@@ -763,6 +816,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.float,
     ...floatShadow,
   },
+  toolInHand: { backgroundColor: colors.primary },
   toolText: { fontSize: 14, fontWeight: '600' },
   pressed: { opacity: 0.7 },
   // What the map shows now ("Map: home"), and how current it is: a small white pill.

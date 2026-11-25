@@ -55,6 +55,9 @@ export namespace vacuum {
             /** COMMAND_SET_ROOMS value */
             COMMAND_SET_ROOMS = 21,
 
+            /** COMMAND_EDIT_ROOMS value */
+            COMMAND_EDIT_ROOMS = 22,
+
             /** COMMAND_GO_TO value */
             COMMAND_GO_TO = 32,
 
@@ -2651,6 +2654,117 @@ export namespace vacuum {
 
             /** Shape of a SetRooms. */
             type $Shape = vacuum.v1.SetRooms.$Properties;
+        }
+
+        /**
+         * Properties of an EditRooms.
+         * @deprecated Use vacuum.v1.EditRooms.$Properties instead.
+         */
+        interface IEditRooms extends vacuum.v1.EditRooms.$Properties {
+        }
+
+        /** Represents an EditRooms. */
+        class EditRooms {
+
+            /**
+             * Constructs a new EditRooms.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: vacuum.v1.EditRooms.$Properties);
+
+            /** Unknown fields preserved while decoding when enabled */
+            $unknowns?: Uint8Array[];
+
+            /** EditRooms requestId. */
+            requestId: number;
+
+            /** EditRooms rooms. */
+            rooms: vacuum.v1.Rooms.Room.$Properties[];
+
+            /** EditRooms join. */
+            join: number[];
+
+            /** EditRooms cutCm. */
+            cutCm: number[];
+
+            /**
+             * Creates a new EditRooms instance using the specified properties.
+             * @param [properties] Properties to set
+             * @returns EditRooms instance
+             */
+            static create(properties: vacuum.v1.EditRooms.$Shape): vacuum.v1.EditRooms & vacuum.v1.EditRooms.$Shape;
+            static create(properties?: vacuum.v1.EditRooms.$Properties): vacuum.v1.EditRooms;
+
+            /**
+             * Encodes the specified EditRooms message. Does not implicitly {@link vacuum.v1.EditRooms.verify|verify} messages.
+             * @param message EditRooms message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            static encode(message: vacuum.v1.EditRooms.$Properties, writer?: $protobuf.Writer): $protobuf.Writer;
+
+            /**
+             * Decodes an EditRooms message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns {vacuum.v1.EditRooms & vacuum.v1.EditRooms.$Shape} EditRooms
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): vacuum.v1.EditRooms & vacuum.v1.EditRooms.$Shape;
+
+            /**
+             * Verifies an EditRooms message.
+             * @param message Plain object to verify
+             * @returns `null` if valid, otherwise the reason why it is not
+             */
+            static verify(message: { [k: string]: any }): (string|null);
+
+            /**
+             * Creates an EditRooms message from a plain object. Also converts values to their respective internal types.
+             * @param object Plain object
+             * @returns EditRooms
+             */
+            static fromObject(object: { [k: string]: any }): vacuum.v1.EditRooms;
+
+            /**
+             * Creates a plain object from an EditRooms message. Also converts values to other types if specified.
+             * @param message EditRooms
+             * @param [options] Conversion options
+             * @returns Plain object
+             */
+            static toObject(message: vacuum.v1.EditRooms, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+            /**
+             * Converts this EditRooms to JSON.
+             * @returns JSON object
+             */
+            toJSON(): { [k: string]: any };
+        }
+
+        namespace EditRooms {
+
+            /** Properties of an EditRooms. */
+            interface $Properties {
+
+                /** EditRooms requestId */
+                requestId?: (number|null);
+
+                /** EditRooms rooms */
+                rooms?: (vacuum.v1.Rooms.Room.$Properties[]|null);
+
+                /** EditRooms join */
+                join?: (number[]|null);
+
+                /** EditRooms cutCm */
+                cutCm?: (number[]|null);
+
+                /** Unknown fields preserved while decoding when enabled */
+                $unknowns?: Uint8Array[];
+            }
+
+            /** Shape of an EditRooms. */
+            type $Shape = vacuum.v1.EditRooms.$Properties;
         }
 
         /**

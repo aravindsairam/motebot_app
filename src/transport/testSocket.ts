@@ -151,6 +151,7 @@ export interface SentCommand {
   zones?: { mapName: string; zones: { name: string; pointsCm: number[] }[] }; // SetNoGoZones
   settings?: vacuum.v1.RobotSettings; // SetRobotSettings: numbers as the 32-bit floats they travel as
   rooms?: { mapName: string; rooms: TestRoom[] }; // SetRooms, NameRooms (no map name)
+  edit?: { rooms: TestRoom[]; join: number[]; cutCm: number[] }; // EditRooms
   question?: { conversation: string; text: string }; // AskAssistant
 }
 
@@ -210,6 +211,10 @@ export function sentCommands(socket: TestSocket): SentCommand[] {
       out.rooms = { mapName: m.mapName, rooms: m.rooms.map(testRoom) };
     }
     if (type === pb.CommandType.COMMAND_NAME_ROOMS) out.rooms = { mapName: '', rooms: pb.NameRooms.decode(payload).rooms.map(testRoom) };
+    if (type === pb.CommandType.COMMAND_EDIT_ROOMS) {
+      const m = pb.EditRooms.decode(payload);
+      out.edit = { rooms: m.rooms.map(testRoom), join: Array.from(m.join), cutCm: Array.from(m.cutCm) };
+    }
     if (type === pb.CommandType.COMMAND_ASK_ASSISTANT) {
       const m = pb.AskAssistant.decode(payload);
       out.question = { conversation: m.conversation, text: m.text };

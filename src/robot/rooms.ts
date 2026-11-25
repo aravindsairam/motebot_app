@@ -5,12 +5,17 @@
 // Nothing changes on the robot until Save. When the robot says no, the message card says why and
 // editing goes on.
 //
+// No split of a map is right every time, so two tools put it right by hand. Join: tap two rooms
+// that touch, and they become one. Split: tap the two ends of a line across a room, and it becomes
+// two. The robot does both on its map and answers with the rooms as they are then; with a tool in
+// hand a tap picks, and does not rename. A tool is put away once it has done its work.
+//
 // The rooms belong to the map in use, so the editor opens under the same rule as the no-go zones.
 
-import type { AssistantStatus, Room } from '../transport/messages';
+import type { AssistantStatus, Room, RoomsChange } from '../transport/messages';
 import { showNotice, showRefusal } from './actionsStore';
-import { findRooms, nameRooms, setRooms } from './commands';
-import { CLOSED_ROOM_EDIT, type RoomEditState, type RoomWork, useRoomEdit } from './roomEditStore';
+import { editRooms, findRooms, nameRooms, setRooms } from './commands';
+import { CLOSED_ROOM_EDIT, type RoomEditState, type RoomTool, type RoomWork, useRoomEdit } from './roomEditStore';
 import { insidePolygon } from './spot';
 import { useRobot } from './store';
 
@@ -109,18 +114,37 @@ export function withNames(draft: readonly Room[], named: readonly Room[]): Room[
   });
 }
 
+/** What the next tap does with a tool in hand; null with none. */
+export function roomToolPrompt(s: Pick<RoomEditState, 'tool' | 'picked' | 'from' | 'draft'>): string | null {
+  if (s.tool === 'join') {
+    const first = s.picked !== null ? s.draft[s.picked] : undefined;
+    return first ? `Join: now tap the room next to ${first.name}` : 'Join: tap the first room';
+  }
+  if (s.tool === 'split') return s.from ? 'Split: now tap where it ends' : 'Split: tap where the dividing line starts';
+  return null;
+}
+
 /** The line in the editor: what is going on, or what to do next. `status`: what the robot says it
  *  is doing (naming the rooms, it says which room it is going to). */
-export function roomEditLine(s: Pick<RoomEditState, 'work' | 'draft'>, status: AssistantStatus | null): string {
+export function roomEditLine(
+  s: Pick<RoomEditState, 'work' | 'draft'> & Partial<Pick<RoomEditState, 'tool' | 'picked' | 'from'>>,
+  status: AssistantStatus | null,
+): string {
+  const tool = { tool: s.tool ?? null, picked: s.picked ?? null, from: s.from ?? null, draft: s.draft };
   switch (s.work) {
     case 'finding':
       return 'Finding the rooms on the map…';
     case 'naming':
       return status?.busy && status.doing ? `Naming the rooms: ${status.doing}…` : 'Naming the rooms: the robot goes to look into each one…';
+    case 'changing':
+      return tool.tool === 'split' ? 'Splitting the room…' : 'Joining the rooms…';
     case 'saving':
       return 'Saving the rooms on the robot…';
     default:
-      return s.draft.length === 0 ? 'No rooms yet. Find rooms splits the map at its doorways.' : `${roomsCount(s.draft.length)}. Tap a name to rename it.`;
+      return (
+        roomToolPrompt(tool) ??
+        (s.draft.length === 0 ? 'No rooms yet. Find rooms splits the map at its doorways.' : `${roomsCount(s.draft.length)}. Tap a name to rename it.`)
+      );
   }
 }
 
@@ -160,7 +184,8 @@ export function closeRoomEditor(): void {
 function begin(work: RoomWork): number | null {
   const s = useRoomEdit.getState();
   if (!s.open || s.work !== null) return null;
-  useRoomEdit.setState({ work, renaming: null });
+  // A tool stays in hand only for its own request; whatever it had picked is let go.
+  useRoomEdit.setState({ work, renaming: null, picked: null, from: null, tool: work === 'changing' ? s.tool : null });
   showNotice(null);
   return ++seq;
 }
@@ -230,6 +255,48 @@ export async function saveRooms(): Promise<void> {
   });
 }
 
+/** Take a tool in hand, or put it away when it is the one in hand. Not while a request is on its way. */
+export function toggleRoomTool(tool: RoomTool): void {
+  const s = useRoomEdit.getState();
+  if (!s.open || s.work !== null) return;
+  useRoomEdit.setState({ tool: s.tool === tool ? null : tool, picked: null, from: null, renaming: null });
+}
+
+/** Join or split: the robot's answer replaces the rooms being edited, and the tool is put away.
+ *  When the robot says no, the message card says why and the tool stays in hand for another try. */
+async function changeRooms(tool: RoomTool, change: RoomsChange): Promise<void> {
+  const before = useRoomEdit.getState().draft;
+  const id = begin('changing');
+  if (id === null) return;
+  const answer = await editRooms(before, change);
+  if (!stillWanted(id)) return;
+  if (answer.rooms === null) {
+    useRoomEdit.setState({ work: null });
+    showRefusal(tool === 'join' ? "Couldn't join the rooms" : "Couldn't split the room", answer.text || 'the robot gave no reason');
+    return;
+  }
+  useRoomEdit.setState({ work: null, tool: null, draft: answer.rooms });
+  showNotice(
+    tool === 'join'
+      ? { tone: 'success', title: 'Rooms joined', text: 'Check the rooms, then Save.' }
+      : { tone: 'success', title: 'Room split', text: 'Tap the new room to name it, then Save.' },
+  );
+}
+
+/** A tap on a room, on the map or in the list. With Join in hand it picks the room (the second
+ *  one picked joins the two; the same one again lets go of it); otherwise it opens its name. */
+export async function pickRoom(index: number): Promise<void> {
+  const s = useRoomEdit.getState();
+  if (!s.open || s.work !== null || index < 0 || index >= s.draft.length) return;
+  if (s.tool !== 'join') {
+    if (s.tool === null) startRenaming(index);
+    return;
+  }
+  if (s.picked === null || s.picked >= s.draft.length) useRoomEdit.setState({ picked: index });
+  else if (s.picked === index) useRoomEdit.setState({ picked: null });
+  else await changeRooms('join', { join: [s.picked, index] });
+}
+
 /** Open the name dialog for a room. Not while a request is on its way. */
 export function startRenaming(index: number): void {
   const s = useRoomEdit.getState();
@@ -256,11 +323,19 @@ export function renameRoom(index: number, name: string): string | null {
 export function deleteRoom(index: number): void {
   const s = useRoomEdit.getState();
   if (!s.open || s.work !== null) return;
-  useRoomEdit.setState({ draft: s.draft.filter((_, i) => i !== index), renaming: null });
+  useRoomEdit.setState({ draft: s.draft.filter((_, i) => i !== index), renaming: null, picked: null });
 }
 
-/** A tap on the map at (x, y), metres, while editing: renames the room there. */
-export function tapRooms(x: number, y: number): void {
-  const index = roomAt(useRoomEdit.getState().draft, x, y);
-  if (index !== null) startRenaming(index);
+/** A tap on the map at (x, y), metres, while editing. With Split in hand it sets an end of the
+ *  line (the second end splits the room); otherwise it is a tap on the room there. */
+export async function tapRooms(x: number, y: number): Promise<void> {
+  const s = useRoomEdit.getState();
+  if (!s.open || s.work !== null) return;
+  if (s.tool === 'split') {
+    if (s.from === null) useRoomEdit.setState({ from: { x, y } });
+    else await changeRooms('split', { cut: [s.from.x, s.from.y, x, y] });
+    return;
+  }
+  const index = roomAt(s.draft, x, y);
+  if (index !== null) await pickRoom(index);
 }

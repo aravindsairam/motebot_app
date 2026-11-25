@@ -34,6 +34,7 @@ import {
   encodeChangeMode,
   encodeDeleteCleaningPlan,
   encodeDrive,
+  encodeEditRooms,
   encodeFindRooms,
   encodeGetCleaningRecord,
   encodeGoTo,
@@ -537,6 +538,8 @@ describeWithSamples('messages written by the gateway', () => {
       'command_change_mode.bin',
       'command_delete_cleaning_plan.bin',
       'command_drive.bin',
+      'command_edit_rooms_cut.bin',
+      'command_edit_rooms_join.bin',
       'command_find_rooms.bin',
       'command_get_cleaning_record.bin',
       'command_go_to.bin',
@@ -712,6 +715,13 @@ describeWithSamples('commands written by the app', () => {
     const reported = decodeRooms(sample('rooms.bin', DataType.DATA_ROOMS));
     const again = encodeFrame(CHANNEL_COMMAND, CommandType.COMMAND_SET_ROOMS, encodeSetRooms(77, reported.mapName, reported.rooms), 1 << 20);
     expect([...again]).toEqual([...onDisk('command_set_rooms.bin')]);
+  });
+
+  it('EditRooms: two rooms to join by their places, or a line to cut one along in whole centimetres', () => {
+    const join = encodeFrame(CHANNEL_COMMAND, CommandType.COMMAND_EDIT_ROOMS, encodeEditRooms(81, ROOMS, { join: [1, 0] }), 1 << 20);
+    expect([...join]).toEqual([...onDisk('command_edit_rooms_join.bin')]);
+    const cut = encodeFrame(CHANNEL_COMMAND, CommandType.COMMAND_EDIT_ROOMS, encodeEditRooms(82, ROOMS, { cut: [8.55, 0.2, 8.55, -1.5] }), 1 << 20);
+    expect([...cut]).toEqual([...onDisk('command_edit_rooms_cut.bin')]);
   });
 
   it('NameRooms', () => {

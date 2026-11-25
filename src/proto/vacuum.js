@@ -69,6 +69,7 @@ $root.vacuum = (function() {
          * @property {number} COMMAND_SET_ROBOT_SETTINGS=19 COMMAND_SET_ROBOT_SETTINGS value
          * @property {number} COMMAND_FIND_ROOMS=20 COMMAND_FIND_ROOMS value
          * @property {number} COMMAND_SET_ROOMS=21 COMMAND_SET_ROOMS value
+         * @property {number} COMMAND_EDIT_ROOMS=22 COMMAND_EDIT_ROOMS value
          * @property {number} COMMAND_GO_TO=32 COMMAND_GO_TO value
          * @property {number} COMMAND_CANCEL_GOAL=33 COMMAND_CANCEL_GOAL value
          * @property {number} COMMAND_DRIVE=34 COMMAND_DRIVE value
@@ -94,6 +95,7 @@ $root.vacuum = (function() {
             values[valuesById[19] = "COMMAND_SET_ROBOT_SETTINGS"] = 19;
             values[valuesById[20] = "COMMAND_FIND_ROOMS"] = 20;
             values[valuesById[21] = "COMMAND_SET_ROOMS"] = 21;
+            values[valuesById[22] = "COMMAND_EDIT_ROOMS"] = 22;
             values[valuesById[32] = "COMMAND_GO_TO"] = 32;
             values[valuesById[33] = "COMMAND_CANCEL_GOAL"] = 33;
             values[valuesById[34] = "COMMAND_DRIVE"] = 34;
@@ -7370,6 +7372,378 @@ $root.vacuum = (function() {
             };
 
             return SetRooms;
+        })();
+
+        v1.EditRooms = (function() {
+
+            /**
+             * Properties of an EditRooms.
+             * @typedef {Object} vacuum.v1.EditRooms.$Properties
+             * @property {number|null} [requestId] EditRooms requestId
+             * @property {Array.<vacuum.v1.Rooms.Room.$Properties>|null} [rooms] EditRooms rooms
+             * @property {Array.<number>|null} [join] EditRooms join
+             * @property {Array.<number>|null} [cutCm] EditRooms cutCm
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+
+            /**
+             * Properties of an EditRooms.
+             * @memberof vacuum.v1
+             * @interface IEditRooms
+             * @augments vacuum.v1.EditRooms.$Properties
+             * @deprecated Use vacuum.v1.EditRooms.$Properties instead.
+             */
+
+            /**
+             * Shape of an EditRooms.
+             * @typedef {vacuum.v1.EditRooms.$Properties} vacuum.v1.EditRooms.$Shape
+             */
+
+            /**
+             * Constructs a new EditRooms.
+             * @memberof vacuum.v1
+             * @classdesc Represents an EditRooms.
+             * @constructor
+             * @param {vacuum.v1.EditRooms.$Properties=} [properties] Properties to set
+             * @property {Array.<Uint8Array>} [$unknowns] Unknown fields preserved while decoding when enabled
+             */
+            var EditRooms = function (properties) {
+                this.rooms = [];
+                this.join = [];
+                this.cutCm = [];
+                if (properties)
+                    for (var keys = $Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                            this[keys[i]] = properties[keys[i]];
+            };
+
+            /**
+             * EditRooms requestId.
+             * @member {number} requestId
+             * @memberof vacuum.v1.EditRooms
+             * @instance
+             */
+            EditRooms.prototype.requestId = 0;
+
+            /**
+             * EditRooms rooms.
+             * @member {Array.<vacuum.v1.Rooms.Room.$Properties>} rooms
+             * @memberof vacuum.v1.EditRooms
+             * @instance
+             */
+            EditRooms.prototype.rooms = $util.emptyArray;
+
+            /**
+             * EditRooms join.
+             * @member {Array.<number>} join
+             * @memberof vacuum.v1.EditRooms
+             * @instance
+             */
+            EditRooms.prototype.join = $util.emptyArray;
+
+            /**
+             * EditRooms cutCm.
+             * @member {Array.<number>} cutCm
+             * @memberof vacuum.v1.EditRooms
+             * @instance
+             */
+            EditRooms.prototype.cutCm = $util.emptyArray;
+
+            /**
+             * Creates a new EditRooms instance using the specified properties.
+             * @function create
+             * @memberof vacuum.v1.EditRooms
+             * @static
+             * @param {vacuum.v1.EditRooms.$Properties=} [properties] Properties to set
+             * @returns {vacuum.v1.EditRooms} EditRooms instance
+             * @type {{
+             *   (properties: vacuum.v1.EditRooms.$Shape): vacuum.v1.EditRooms & vacuum.v1.EditRooms.$Shape;
+             *   (properties?: vacuum.v1.EditRooms.$Properties): vacuum.v1.EditRooms;
+             * }}
+             */
+            EditRooms.create = function(properties) {
+                return new EditRooms(properties);
+            };
+
+            /**
+             * Encodes the specified EditRooms message. Does not implicitly {@link vacuum.v1.EditRooms.verify|verify} messages.
+             * @function encode
+             * @memberof vacuum.v1.EditRooms
+             * @static
+             * @param {vacuum.v1.EditRooms.$Properties} message EditRooms message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            EditRooms.encode = function (message, writer, _depth) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId") && message.requestId !== 0)
+                    writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.requestId);
+                if (message.rooms != null && message.rooms.length)
+                    for (var i = 0; i < message.rooms.length; ++i)
+                        $root.vacuum.v1.Rooms.Room.encode(message.rooms[i], writer.uint32(/* id 2, wireType 2 =*/18).fork(), _depth + 1).ldelim();
+                if (message.join != null && message.join.length)
+                    writer.uint32(/* id 3, wireType 2 =*/26).uint32s(message.join);
+                if (message.cutCm != null && message.cutCm.length)
+                    writer.uint32(/* id 4, wireType 2 =*/34).sint32s(message.cutCm);
+                if (message.$unknowns != null && $Object.hasOwnProperty.call(message, "$unknowns"))
+                    for (var i = 0; i < message.$unknowns.length; ++i)
+                        writer.raw(message.$unknowns[i]);
+                return writer;
+            };
+
+            /**
+             * Decodes an EditRooms message from the specified reader or buffer.
+             * @function decode
+             * @memberof vacuum.v1.EditRooms
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {vacuum.v1.EditRooms & vacuum.v1.EditRooms.$Shape} EditRooms
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            EditRooms.decode = function (reader, length, _end, _depth, _target) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $Reader.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var end, message, value;
+                if (length === $undefined)
+                    end = reader.len;
+                else {
+                    end = reader.pos + length;
+                    if (end > reader.len)
+                        throw $RangeError("index out of range");
+                    length = reader.len;
+                    reader.len = end;
+                }
+                message = _target || new $root.vacuum.v1.EditRooms();
+                while (reader.pos < end) {
+                    var start = reader.pos;
+                    var tag = reader.tag();
+                    if (tag === _end) {
+                        _end = $undefined;
+                        break;
+                    }
+                    var wireType = tag & 7;
+                    switch (tag >>>= 3) {
+                    case 1: {
+                            if (wireType !== 0)
+                                break;
+                            if (value = reader.uint32())
+                                message.requestId = value;
+                            else
+                                delete message.requestId;
+                            continue;
+                        }
+                    case 2: {
+                            if (wireType !== 2)
+                                break;
+                            if (!(message.rooms && message.rooms.length))
+                                message.rooms = [];
+                            message.rooms.push($root.vacuum.v1.Rooms.Room.decode(reader, reader.size(), $undefined, _depth + 1));
+                            continue;
+                        }
+                    case 3: {
+                            if (wireType === 2) {
+                                if (!(message.join && message.join.length))
+                                    message.join = [];
+                                reader.uint32s(message.join);
+                                continue;
+                            }
+                            if (wireType !== 0)
+                                break;
+                            if (!(message.join && message.join.length))
+                                message.join = [];
+                            message.join.push(reader.uint32());
+                            continue;
+                        }
+                    case 4: {
+                            if (wireType === 2) {
+                                if (!(message.cutCm && message.cutCm.length))
+                                    message.cutCm = [];
+                                reader.sint32s(message.cutCm);
+                                continue;
+                            }
+                            if (wireType !== 0)
+                                break;
+                            if (!(message.cutCm && message.cutCm.length))
+                                message.cutCm = [];
+                            message.cutCm.push(reader.sint32());
+                            continue;
+                        }
+                    }
+                    reader.skipType(wireType, _depth, tag);
+                    if (!reader.discardUnknown) {
+                        $util.makeProp(message, "$unknowns", false);
+                        (message.$unknowns || (message.$unknowns = [])).push(reader.raw(start, reader.pos));
+                    }
+                }
+                if (length !== $undefined) {
+                    if (reader.pos !== end)
+                        throw $RangeError("index out of range");
+                    reader.len = length;
+                }
+                if (_end !== $undefined)
+                    throw $Error("missing end group");
+                return message;
+            };
+
+            /**
+             * Verifies an EditRooms message.
+             * @function verify
+             * @memberof vacuum.v1.EditRooms
+             * @static
+             * @param {Object.<string,*>} message Plain object to verify
+             * @returns {string|null} `null` if valid, otherwise the reason why it is not
+             */
+            EditRooms.verify = function (message, _depth) {
+                if (typeof message !== "object" || message === null)
+                    return "object expected";
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    return "max depth exceeded";
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId"))
+                    if (!$util.isInteger(message.requestId))
+                        return "requestId: integer expected";
+                if (message.rooms != null && $Object.hasOwnProperty.call(message, "rooms")) {
+                    if (!$Array.isArray(message.rooms))
+                        return "rooms: array expected";
+                    for (var i = 0; i < message.rooms.length; ++i) {
+                        var error = $root.vacuum.v1.Rooms.Room.verify(message.rooms[i], _depth + 1);
+                        if (error)
+                            return "rooms." + error;
+                    }
+                }
+                if (message.join != null && $Object.hasOwnProperty.call(message, "join")) {
+                    if (!$Array.isArray(message.join))
+                        return "join: array expected";
+                    for (var i = 0; i < message.join.length; ++i)
+                        if (!$util.isInteger(message.join[i]))
+                            return "join: integer[] expected";
+                }
+                if (message.cutCm != null && $Object.hasOwnProperty.call(message, "cutCm")) {
+                    if (!$Array.isArray(message.cutCm))
+                        return "cutCm: array expected";
+                    for (var i = 0; i < message.cutCm.length; ++i)
+                        if (!$util.isInteger(message.cutCm[i]))
+                            return "cutCm: integer[] expected";
+                }
+                return null;
+            };
+
+            /**
+             * Creates an EditRooms message from a plain object. Also converts values to their respective internal types.
+             * @function fromObject
+             * @memberof vacuum.v1.EditRooms
+             * @static
+             * @param {Object.<string,*>} object Plain object
+             * @returns {vacuum.v1.EditRooms} EditRooms
+             */
+            EditRooms.fromObject = function (object, _depth) {
+                if (object instanceof $root.vacuum.v1.EditRooms)
+                    return object;
+                if (!$util.isObject(object))
+                    throw $TypeError(".vacuum.v1.EditRooms: object expected");
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var message = new $root.vacuum.v1.EditRooms();
+                if (object.requestId != null)
+                    if ($Number(object.requestId) !== 0)
+                        message.requestId = object.requestId >>> 0;
+                if (object.rooms) {
+                    if (!$Array.isArray(object.rooms))
+                        throw $TypeError(".vacuum.v1.EditRooms.rooms: array expected");
+                    message.rooms = $Array(object.rooms.length);
+                    for (var i = 0; i < object.rooms.length; ++i) {
+                        if (!$util.isObject(object.rooms[i]))
+                            throw $TypeError(".vacuum.v1.EditRooms.rooms: object expected");
+                        message.rooms[i] = $root.vacuum.v1.Rooms.Room.fromObject(object.rooms[i], _depth + 1);
+                    }
+                }
+                if (object.join) {
+                    if (!$Array.isArray(object.join))
+                        throw $TypeError(".vacuum.v1.EditRooms.join: array expected");
+                    message.join = $Array(object.join.length);
+                    for (var i = 0; i < object.join.length; ++i)
+                        message.join[i] = object.join[i] >>> 0;
+                }
+                if (object.cutCm) {
+                    if (!$Array.isArray(object.cutCm))
+                        throw $TypeError(".vacuum.v1.EditRooms.cutCm: array expected");
+                    message.cutCm = $Array(object.cutCm.length);
+                    for (var i = 0; i < object.cutCm.length; ++i)
+                        message.cutCm[i] = object.cutCm[i] | 0;
+                }
+                return message;
+            };
+
+            /**
+             * Creates a plain object from an EditRooms message. Also converts values to other types if specified.
+             * @function toObject
+             * @memberof vacuum.v1.EditRooms
+             * @static
+             * @param {vacuum.v1.EditRooms} message EditRooms
+             * @param {$protobuf.IConversionOptions} [options] Conversion options
+             * @returns {Object.<string,*>} Plain object
+             */
+            EditRooms.toObject = function (message, options, _depth) {
+                if (!options)
+                    options = {};
+                if (_depth === $undefined)
+                    _depth = 0;
+                if (_depth > $util.recursionLimit)
+                    throw $Error("max depth exceeded");
+                var object = {};
+                if (options.arrays || options.defaults) {
+                    object.rooms = [];
+                    object.join = [];
+                    object.cutCm = [];
+                }
+                if (options.defaults)
+                    object.requestId = 0;
+                if (message.requestId != null && $Object.hasOwnProperty.call(message, "requestId"))
+                    object.requestId = message.requestId;
+                if (message.rooms && message.rooms.length) {
+                    object.rooms = $Array(message.rooms.length);
+                    for (var j = 0; j < message.rooms.length; ++j)
+                        object.rooms[j] = $root.vacuum.v1.Rooms.Room.toObject(message.rooms[j], options, _depth + 1);
+                }
+                if (message.join && message.join.length) {
+                    object.join = $Array(message.join.length);
+                    for (var j = 0; j < message.join.length; ++j)
+                        object.join[j] = message.join[j];
+                }
+                if (message.cutCm && message.cutCm.length) {
+                    object.cutCm = $Array(message.cutCm.length);
+                    for (var j = 0; j < message.cutCm.length; ++j)
+                        object.cutCm[j] = message.cutCm[j];
+                }
+                return object;
+            };
+
+            /**
+             * Converts this EditRooms to JSON.
+             * @function toJSON
+             * @memberof vacuum.v1.EditRooms
+             * @instance
+             * @returns {Object.<string,*>} JSON object
+             */
+            EditRooms.prototype.toJSON = function() {
+                return EditRooms.toObject(this, $protobuf.util.toJSONOptions);
+            };
+
+            return EditRooms;
         })();
 
         v1.AskAssistant = (function() {

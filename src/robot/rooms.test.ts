@@ -20,6 +20,7 @@ import {
   findRoomsOnMap,
   nameRoomsByLooking,
   openRoomEditor,
+  pickRoom,
   renameRoom,
   roomAreaText,
   roomAt,
@@ -31,6 +32,7 @@ import {
   saveRooms,
   startRenaming,
   tapRooms,
+  toggleRoomTool,
   withNames,
   labelPoint,
 } from './rooms';
@@ -292,6 +294,101 @@ describe('Name by looking', () => {
     openRoomEditor();
     await nameRoomsByLooking();
     expect(sentCommands(socket).filter((c) => c.type === CommandType.COMMAND_NAME_ROOMS)).toEqual([]);
+  });
+});
+
+describe('Join and Split', () => {
+  const line = () => roomEditLine(useRoomEdit.getState(), null);
+
+  it('Join: the tool, then a tap on each of two rooms; the robot answers with the rooms as they are then', async () => {
+    const socket = connected();
+    openRoomEditor();
+    toggleRoomTool('join');
+    expect(line()).toBe('Join: tap the first room');
+    void tapRooms(8, 1); // in the kitchen: picked, not renamed
+    expect(useRoomEdit.getState()).toMatchObject({ tool: 'join', picked: 0, renaming: null });
+    expect(line()).toBe('Join: now tap the room next to Kitchen');
+    const joining = pickRoom(1); // the hall, from the list
+    const sent = await lastSent(socket);
+    expect(sent.type).toBe(CommandType.COMMAND_EDIT_ROOMS);
+    expect(sent.edit).toEqual({ rooms: [KITCHEN, HALL], join: [0, 1], cutCm: [] });
+    expect(useRoomEdit.getState().work).toBe('changing');
+    expect(line()).toBe('Joining the rooms…');
+    const one = { ...KITCHEN, area: 18.75 };
+    socket.deliver(replyWith(sent.requestId, ReplyResult.RESULT_OK, '1 room now', { rooms: { mapName: 'house', rooms: [one] } }));
+    await joining;
+    expect(useRoomEdit.getState()).toMatchObject({ open: true, work: null, tool: null, picked: null });
+    expect(useRoomEdit.getState().draft).toEqual([inMetres(one)]);
+    expect(useActions.getState().notice).toMatchObject({ tone: 'success', title: 'Rooms joined' });
+    expect(roomsEdited()).toBe(true);
+    expect(sentCommands(socket).some((c) => c.type === CommandType.COMMAND_SET_ROOMS)).toBe(false); // not saved yet
+  });
+
+  it('Join: a second tap on the room picked lets go of it, and the tool pressed again is put away', async () => {
+    const socket = connected();
+    openRoomEditor();
+    toggleRoomTool('join');
+    void pickRoom(1);
+    void tapRooms(1, 1); // the hall again
+    expect(useRoomEdit.getState()).toMatchObject({ tool: 'join', picked: null });
+    void tapRooms(-5, -5); // no room there
+    expect(useRoomEdit.getState()).toMatchObject({ tool: 'join', picked: null });
+    void pickRoom(0);
+    toggleRoomTool('join');
+    expect(useRoomEdit.getState()).toMatchObject({ tool: null, picked: null });
+    void tapRooms(8, 1); // with no tool, a tap renames as before
+    expect(useRoomEdit.getState().renaming).toBe(0);
+    await flush();
+    expect(sentCommands(socket).some((c) => c.type === CommandType.COMMAND_EDIT_ROOMS)).toBe(false);
+  });
+
+  it('Split: the tool, then a tap at each end of the line; the ends go in whole centimetres', async () => {
+    const socket = connected();
+    openRoomEditor();
+    toggleRoomTool('split');
+    expect(line()).toBe('Split: tap where the dividing line starts');
+    void tapRooms(8.5, 0.204);
+    expect(useRoomEdit.getState()).toMatchObject({ tool: 'split', from: { x: 8.5, y: 0.204 }, renaming: null });
+    expect(line()).toBe('Split: now tap where it ends');
+    const splitting = tapRooms(8.5, 3);
+    const sent = await lastSent(socket);
+    expect(sent.edit).toEqual({ rooms: [KITCHEN, HALL], join: [], cutCm: [850, 20, 850, 300] });
+    expect(line()).toBe('Splitting the room…');
+    const half = { ...KITCHEN, area: 6.4 };
+    const other = { ...KITCHEN, name: 'Room 1', xCm: 950, area: 6.35 };
+    socket.deliver(replyWith(sent.requestId, ReplyResult.RESULT_OK, '3 rooms now', { rooms: { mapName: 'house', rooms: [half, other, HALL] } }));
+    await splitting;
+    expect(useRoomEdit.getState()).toMatchObject({ work: null, tool: null, from: null });
+    expect(useRoomEdit.getState().draft.map((r) => r.name)).toEqual(['Kitchen', 'Room 1', 'Hall']);
+    expect(useActions.getState().notice).toMatchObject({ tone: 'success', title: 'Room split' });
+  });
+
+  it('a refusal says why, and the tool stays in hand for another try', async () => {
+    const socket = connected();
+    openRoomEditor();
+    toggleRoomTool('join');
+    void pickRoom(0);
+    const joining = pickRoom(1);
+    const sent = await lastSent(socket);
+    socket.deliver(replyFrame(sent.requestId, ReplyResult.RESULT_REFUSED, "'Kitchen' and 'Hall' do not touch"));
+    await joining;
+    expect(useActions.getState().notice).toMatchObject({ tone: 'error', title: "Couldn't join the rooms", text: "'Kitchen' and 'Hall' do not touch." });
+    expect(useRoomEdit.getState()).toMatchObject({ open: true, work: null, tool: 'join', picked: null });
+    expect(useRoomEdit.getState().draft).toHaveLength(2);
+  });
+
+  it('one tool at a time, and Find rooms puts the tool away', async () => {
+    connected();
+    openRoomEditor();
+    toggleRoomTool('split');
+    void tapRooms(8.5, 0.2);
+    toggleRoomTool('join');
+    expect(useRoomEdit.getState()).toMatchObject({ tool: 'join', from: null, picked: null });
+    void findRoomsOnMap();
+    expect(useRoomEdit.getState()).toMatchObject({ work: 'finding', tool: null });
+    toggleRoomTool('split'); // not while the robot is asked something
+    expect(useRoomEdit.getState().tool).toBeNull();
+    await flush();
   });
 });
 

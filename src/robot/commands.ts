@@ -14,6 +14,7 @@ import {
   encodeChangeMode,
   encodeDeleteCleaningPlan,
   encodeDrive,
+  encodeEditRooms,
   encodeFindRooms,
   encodeGetCleaningRecord,
   encodeGoTo,
@@ -31,6 +32,7 @@ import {
   encodeStartExploration,
   type Reply,
   type Room,
+  type RoomsChange,
   type SettingsValues,
 } from '../transport/messages';
 import { currentConnection } from './client';
@@ -208,6 +210,13 @@ export async function getCleaningRecord(recordId: string): Promise<Outcome & { r
  *  saved. Names of saved rooms that match are kept. */
 export async function findRooms(): Promise<Outcome & { rooms: Room[] | null }> {
   const { reply, outcome } = await ask(CommandType.COMMAND_FIND_ROOMS, encodeFindRooms, ROOMS_CALL_TIMEOUT_MS);
+  return { ...outcome, rooms: outcome.ok ? (reply?.rooms?.rooms ?? []) : null };
+}
+
+/** Join two of `rooms` into one, or cut one in two along a line. Answered with the rooms as they
+ *  are then (null when not OK, with the robot's reason); nothing is saved. */
+export async function editRooms(rooms: readonly Room[], change: RoomsChange): Promise<Outcome & { rooms: Room[] | null }> {
+  const { reply, outcome } = await ask(CommandType.COMMAND_EDIT_ROOMS, (id) => encodeEditRooms(id, rooms, change), ROOMS_CALL_TIMEOUT_MS);
   return { ...outcome, rooms: outcome.ok ? (reply?.rooms?.rooms ?? []) : null };
 }
 
