@@ -15,8 +15,8 @@ describe('watch', () => {
     const heard: Array<number | null> = [];
     const stop = watch(ping, (v) => heard.push(v));
     expect(heard).toEqual([null]);
-    useRobot.setState({ heardAt: 1 }); // the store changes many times a second ...
-    useRobot.setState({ heardAt: 2 });
+    useRobot.setState({ route: { value: { poses: [] } as never, at: 1 } }); // the store changes often ...
+    useRobot.setState({ route: { value: { poses: [] } as never, at: 2 } });
     expect(heard).toEqual([null]); // ... and what is watched did not
     useRobot.setState({ pingMs: 12 });
     expect(heard).toEqual([null, 12]);
@@ -40,7 +40,7 @@ describe('watch', () => {
   it('counts values with the same content as unchanged', () => {
     const heard: unknown[] = [];
     const stop = watch(() => ({ ping: ping(), buttons: { stop: { enabled: true } } }), (v) => heard.push(v), sameData);
-    useRobot.setState({ heardAt: 1 }); // a new object each time, saying the same
+    useRobot.setState({ route: { value: { poses: [] } as never, at: 1 } }); // a new object each time, saying the same
     jest.advanceTimersByTime(2000);
     expect(heard).toHaveLength(1);
     useRobot.setState({ pingMs: 12 });

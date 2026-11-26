@@ -1,14 +1,16 @@
-// The robot's camera, live. Connected only while it is on screen (large, or in the corner
-// window, with the Home tab open), so the PC encodes video only while someone looks at it. If the video fails it says
-// why and tries again every few seconds. Large, a white "Camera" pill names it at the top left;
+// The robot's camera, live. Watched while it is on screen (large, or in the corner window, with
+// the Home tab open); out of sight, the link is kept a few seconds in case it comes back, then
+// closed, so the PC encodes video only while someone looks at it (see cameraLink.ts). If the
+// video fails it says why and tries again every few seconds. Large, a white "Camera" pill names it at the top left;
 // in the corner window, a small dark one at the bottom left.
 
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { RTCView } from 'react-native-webrtc';
 
+import { cameraKeeper } from '../robot/cameraLink';
 import { useRobot } from '../robot/store';
-import { type VideoState, watchCamera } from '../robot/video';
+import type { VideoState } from '../robot/video';
 import { colors, floatShadow, radius, spacing } from './theme';
 
 const RETRY_MS = 3000;
@@ -26,13 +28,13 @@ export function CameraView({ small, active }: { small: boolean; active: boolean 
       return;
     }
     let retry: ReturnType<typeof setTimeout> | null = null;
-    const link = watchCamera(address, (s) => {
+    const hide = cameraKeeper.show(address, (s) => {
       setState(s);
       if (s.kind === 'failed') retry = setTimeout(() => setAttempt((a) => a + 1), RETRY_MS);
     });
     return () => {
       if (retry !== null) clearTimeout(retry);
-      link.close();
+      hide();
     };
   }, [active, connected, address, attempt]);
 

@@ -26,8 +26,7 @@ export interface RobotData {
   address: string | null; // as shown to the user; null when not connecting
   connection: ConnectionStatus;
   everConnected: boolean; // connected at least once since Connect was pressed
-  hello: Hello | null; // from the latest good connection
-  heardAt: number | null; // any message, ms
+  hello: Hello | null; // from the latest good connection (when the latest message came: lastHeard in client.ts)
   pingMs: number | null; // round trip of the latest ping; null when unknown
   robotState: Received<RobotState> | null;
   safety: Received<SafetyStatus> | null;
@@ -45,7 +44,6 @@ export const initialRobotData: RobotData = {
   connection: { kind: 'stopped' },
   everConnected: false,
   hello: null,
-  heardAt: null,
   pingMs: null,
   robotState: null,
   safety: null,

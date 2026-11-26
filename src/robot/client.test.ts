@@ -3,7 +3,7 @@ import * as path from 'path';
 
 import { APP_VERSION } from '../version';
 import { CommandType } from '../transport/messages';
-import { connectTo, disconnect } from './client';
+import { connectTo, disconnect, lastHeard } from './client';
 import { changeMode } from './commands';
 import { modeLook } from './modes';
 import { isFresh, STALE_AFTER_MS, useRobot } from './store';
@@ -84,9 +84,11 @@ describe('the robot store, fed by a connection', () => {
     const off = livePose.subscribe((p) => seen.push(p.x));
     const renders = jest.fn();
     const unsubscribeStore = useRobot.subscribe(renders);
+    jest.setSystemTime(7000);
     socket.deliver(poseFrame(1.5, 2));
     expect(seen).toEqual([1.5]);
-    expect(renders).toHaveBeenCalledTimes(1); // only "heard at" changed in the store
+    expect(renders).not.toHaveBeenCalled(); // nothing in the store changed
+    expect(lastHeard()).toBe(7000);
     off();
     unsubscribeStore();
   });

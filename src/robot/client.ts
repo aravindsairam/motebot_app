@@ -43,6 +43,15 @@ const PING_TIMEOUT_MS = 3000;
 
 let connection: GatewayConnection | null = null;
 let pingTimer: ReturnType<typeof setInterval> | null = null;
+// When the latest message of any kind arrived, ms; null before the first. Kept out of the store:
+// it changes with every message, many times a second, and each change of the store wakes every
+// screen that reads it, for a time that only the Robot tab shows, as text, on its clock.
+let heardAt: number | null = null;
+
+/** When the latest message of any kind arrived, ms; null before the first. */
+export function lastHeard(): number | null {
+  return heardAt;
+}
 
 export interface ClientDeps {
   createSocket?: (url: string) => SocketLike;
@@ -58,6 +67,7 @@ export function connectTo(address: GatewayAddress, deps: ClientDeps = {}): void 
   disconnect();
   const now = deps.now ?? (() => Date.now());
   useRobot.setState({ ...initialRobotData, address: address.label });
+  heardAt = null;
   const conn = new GatewayConnection({
     url: address.url,
     createSocket: deps.createSocket,
@@ -69,7 +79,9 @@ export function connectTo(address: GatewayAddress, deps: ClientDeps = {}): void 
         hello: status.kind === 'connected' ? status.hello : s.hello,
         pingMs: status.kind === 'connected' ? s.pingMs : null,
       })),
-    onHeard: (at) => useRobot.setState({ heardAt: at }),
+    onHeard: (at) => {
+      if (connection === conn) heardAt = at;
+    },
     onFrame: (type, payload) => {
       try {
         receive(type, payload, now);
@@ -180,5 +192,6 @@ export function disconnect(): void {
   resetSettings();
   resetRoomEdit();
   clearMark();
+  heardAt = null;
   useRobot.setState(initialRobotData);
 }
