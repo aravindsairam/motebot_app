@@ -1,4 +1,4 @@
-// The robot's position: it arrives ten times a second, so it does not go through the store
+// The robot's position: it arrives twenty times a second, so it does not go through the store
 // (which would redraw every screen that reads it). The map view subscribes and moves its
 // drawing directly.
 

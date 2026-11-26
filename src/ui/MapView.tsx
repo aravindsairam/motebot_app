@@ -2,10 +2,10 @@
 // pinch to zoom, "Fit" to see the whole map again. Small (in the corner window), it only shows:
 // the whole map, no buttons, no touch.
 //
-// The map changes rarely and comes from the store. The robot's position arrives ten times a
+// The map changes rarely and comes from the store. The robot's position arrives twenty times a
 // second; it goes straight into shared values that the drawing reads, so the screen is not
 // redrawn by React for each one, and the robot glides from each position to the next over the
-// time between two (instead of jumping ten times a second).
+// time between two (instead of jumping twenty times a second).
 //
 // Nothing old is shown as current: without a connection the map is greyed, and a position older
 // than a second draws the robot in grey ("last seen").
@@ -136,7 +136,9 @@ const PIN_DOT_Y = -21; // the white dot in the pin's head
 const MARK_MARGIN_PX = 16; // a mark closer than this to the edge counts as off the screen
 const HANDLE_REACH_PX = 28; // on screen: a finger this close to an area's corner takes that corner
 const NO_EDIT: EditStart = { kind: EDIT_PAN, ax: 0, ay: 0 };
-const GLIDE_MS = 100; // the time between two positions: the robot glides from one to the next
+// The time between two positions: the robot glides from one to the next. It is drawn this much
+// behind the newest position, so it must not be longer than the time between two.
+const GLIDE_MS = 50;
 const GLIDE = { duration: GLIDE_MS, easing: Easing.linear };
 const JUMP_M = 0.5; // a position farther than this from the last is shown at once (a new map, a relocation)
 
